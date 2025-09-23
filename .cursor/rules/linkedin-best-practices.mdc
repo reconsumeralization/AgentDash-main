@@ -1,0 +1,636 @@
+---
+alwaysApply: false
+description: LinkedIn API development best practices, patterns, and guidelines
+globs: *.ts,*.tsx,*.js,*.jsx
+---
+
+# LinkedIn API Development Best Practices
+
+## Architecture Patterns
+
+### Client Factory Pattern
+```typescript
+interface LinkedInClientConfig {
+  clientId: string
+  clientSecret: string
+  redirectUri: string
+  scopes: string[]
+  businessLines: BusinessLine[]
+}
+
+type BusinessLine = 'marketing' | 'sales' | 'talent' | 'learning' | 'compliance'
+
+class LinkedInClientFactory {
+  static create(config: LinkedInClientConfig): LinkedInUnifiedClient {
+    // Validate configuration
+    this.validateConfig(config)
+
+    // Create OAuth client
+    const oauthClient = new LinkedInOAuthClient({
+      clientId: config.clientId,
+      clientSecret: config.clientSecret,
+      redirectUri: config.redirectUri
+    })
+
+    // Create business line clients
+    const clients: Partial<Record<BusinessLine, any>> = {}
+
+    if (config.businessLines.includes('marketing')) {
+      clients.marketing = new MarketingCampaignManager(oauthClient)
+    }
+
+    if (config.businessLines.includes('sales')) {
+      clients.sales = new SalesNavigatorClient(oauthClient)
+    }
+
+    if (config.businessLines.includes('talent')) {
+      clients.talent = new JobPostingManager(oauthClient)
+    }
+
+    return new LinkedInUnifiedClient(oauthClient, clients)
+  }
+
+  private static validateConfig(config: LinkedInClientConfig): void {
+    if (!config.clientId) {
+      throw new Error('Client ID is required')
+    }
+
+    if (!config.clientSecret) {
+      throw new Error('Client Secret is required')
+    }
+
+    if (!config.scopes.length) {
+      throw new Error('At least one scope is required')
+    }
+
+    // Validate scope compatibility
+    const invalidScopes = this.getInvalidScopeCombinations(config.scopes)
+    if (invalidScopes.length) {
+      throw new Error(`Invalid scope combinations: ${invalidScopes.join(', ')}`)
+    }
+  }
+
+  private static getInvalidScopeCombinations(scopes: string[]): string[] {
+    // Implement scope validation logic
+    return []
+  }
+}
+```
+
+### Repository Pattern for Data Management
+```typescript
+interface LinkedInEntity {
+  id: string
+  createdAt: string
+  updatedAt: string
+}
+
+interface Repository<T extends LinkedInEntity> {
+  findById(id: string): Promise<T | null>
+  findAll(filter?: Partial<T>): Promise<T[]>
+  create(entity: Omit<T, 'id' | 'createdAt' | 'updatedAt'>): Promise<T>
+  update(id: string, updates: Partial<T>): Promise<T>
+  delete(id: string): Promise<void>
+}
+
+class LinkedInRepository<T extends LinkedInEntity> implements Repository<T> {
+  constructor(
+    private client: LinkedInApiClient,
+    private endpoint: string
+  ) {}
+
+  async findById(id: string): Promise<T | null> {
+    try {
+      return await this.client.get(`${this.endpoint}/${id}`)
+    } catch (error) {
+      if (error.status === 404) return null
+      throw error
+    }
+  }
+
+  async findAll(filter?: Partial<T>): Promise<T[]> {
+    const queryParams = filter ? new URLSearchParams(filter as any) : ''
+    return this.client.get(`${this.endpoint}?${queryParams}`)
+  }
+
+  async create(entity: Omit<T, 'id' | 'createdAt' | 'updatedAt'>): Promise<T> {
+    return this.client.post(this.endpoint, entity)
+  }
+
+  async update(id: string, updates: Partial<T>): Promise<T> {
+    return this.client.put(`${this.endpoint}/${id}`, updates)
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.client.delete(`${this.endpoint}/${id}`)
+  }
+}
+
+// Usage example
+class CampaignRepository extends LinkedInRepository<MarketingCampaign> {
+  constructor(client: LinkedInApiClient) {
+    super(client, '/v2/adCampaignsV2')
+  }
+
+  async findActiveCampaigns(): Promise<MarketingCampaign[]> {
+    return this.findAll({ status: 'ACTIVE' })
+  }
+
+  async findByAccount(accountId: string): Promise<MarketingCampaign[]> {
+    return this.client.get(`/v2/adCampaignsV2?q=search&account=urn:li:sponsoredAccount:${accountId}`)
+  }
+}
+```
+
+## Data Transformation Patterns
+
+### Request/Response Transformers
+```typescript
+interface Transformer<TInput, TOutput> {
+  transform(input: TInput): TOutput
+  transformMany(inputs: TInput[]): TOutput[]
+}
+
+class LinkedInDataTransformer {
+  // Transform internal models to LinkedIn API format
+  static toLinkedInCampaign(internal: InternalCampaign): MarketingCampaign {
+    return {
+      name: internal.title,
+      account: `urn:li:sponsoredAccount:${internal.accountId}`,
+      campaignGroup: `urn:li:sponsoredCampaignGroup:${internal.groupId}`,
+      status: internal.isActive ? 'ACTIVE' : 'PAUSED',
+      objectiveType: this.mapObjectiveType(internal.objective),
+      budget: {
+        amount: internal.dailyBudget,
+        currencyCode: internal.currency,
+        type: 'DAILY'
+      },
+      targetAudience: {
+        locations: internal.targetLocations,
+        industries: internal.targetIndustries,
+        jobTitles: internal.targetJobTitles,
+        seniorities: internal.targetSeniorities
+      }
+    }
+  }
+
+  // Transform LinkedIn API responses to internal models
+  static fromLinkedInCampaign(api: MarketingCampaign): InternalCampaign {
+    return {
+      id: this.extractId(api.id!),
+      title: api.name,
+      accountId: this.extractId(api.account),
+      groupId: this.extractId(api.campaignGroup),
+      isActive: api.status === 'ACTIVE',
+      objective: this.mapObjectiveTypeReverse(api.objectiveType),
+      dailyBudget: api.budget.amount,
+      currency: api.budget.currencyCode,
+      targetLocations: api.targetAudience.locations,
+      targetIndustries: api.targetAudience.industries,
+      targetJobTitles: api.targetAudience.jobTitles,
+      targetSeniorities: api.targetAudience.seniorities,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+  }
+
+  private static extractId(urn: string): string {
+    return urn.split(':').pop()!
+  }
+
+  private static mapObjectiveType(internal: string): MarketingCampaign['objectiveType'] {
+    const mapping: Record<string, MarketingCampaign['objectiveType']> = {
+      'brand_awareness': 'BRAND_AWARENESS',
+      'consideration': 'CONSIDERATION',
+      'lead_generation': 'LEAD_GENERATION',
+      'website_visits': 'WEBSITE_VISITS'
+    }
+    return mapping[internal] || 'BRAND_AWARENESS'
+  }
+
+  private static mapObjectiveTypeReverse(api: MarketingCampaign['objectiveType']): string {
+    const mapping: Record<MarketingCampaign['objectiveType'], string> = {
+      'BRAND_AWARENESS': 'brand_awareness',
+      'CONSIDERATION': 'consideration',
+      'LEAD_GENERATION': 'lead_generation',
+      'WEBSITE_VISITS': 'website_visits'
+    }
+    return mapping[api] || 'brand_awareness'
+  }
+}
+```
+
+### Pagination Handling
+```typescript
+interface PaginatedResponse<T> {
+  elements: T[]
+  paging: {
+    count: number
+    start: number
+    total: number
+    links?: string[]
+  }
+}
+
+class PaginatedRequestHandler {
+  async getAllPages<T>(
+    endpoint: string,
+    params: Record<string, any> = {},
+    pageSize: number = 50
+  ): Promise<T[]> {
+    const allResults: T[] = []
+    let start = 0
+    let hasMore = true
+
+    while (hasMore) {
+      const queryParams = new URLSearchParams({
+        ...params,
+        count: pageSize.toString(),
+        start: start.toString()
+      })
+
+      const response: PaginatedResponse<T> = await this.apiRequest(
+        `${endpoint}?${queryParams}`
+      )
+
+      allResults.push(...response.elements)
+
+      if (response.elements.length < pageSize) {
+        hasMore = false
+      } else {
+        start += pageSize
+      }
+
+      // Respect rate limits
+      await this.rateLimitDelay()
+    }
+
+    return allResults
+  }
+
+  private async rateLimitDelay(): Promise<void> {
+    // Implement rate limit respecting delay
+    await new Promise(resolve => setTimeout(resolve, 100))
+  }
+}
+```
+
+## Configuration Management
+
+### Environment-Based Configuration
+```typescript
+interface LinkedInConfig {
+  environment: 'sandbox' | 'production'
+  clientId: string
+  clientSecret: string
+  redirectUri: string
+  scopes: string[]
+  rateLimits: {
+    requestsPerMinute: number
+    requestsPerHour: number
+  }
+  timeouts: {
+    connection: number
+    request: number
+  }
+  retryPolicy: {
+    maxRetries: number
+    backoffMultiplier: number
+    maxBackoffTime: number
+  }
+}
+
+class ConfigManager {
+  private static configs: Record<string, LinkedInConfig> = {
+    sandbox: {
+      environment: 'sandbox',
+      clientId: process.env.LINKEDIN_SANDBOX_CLIENT_ID!,
+      clientSecret: process.env.LINKEDIN_SANDBOX_CLIENT_SECRET!,
+      redirectUri: process.env.LINKEDIN_SANDBOX_REDIRECT_URI!,
+      scopes: ['r_liteprofile', 'r_emailaddress', 'w_member_social'],
+      rateLimits: {
+        requestsPerMinute: 10,
+        requestsPerHour: 100
+      },
+      timeouts: {
+        connection: 5000,
+        request: 30000
+      },
+      retryPolicy: {
+        maxRetries: 3,
+        backoffMultiplier: 2,
+        maxBackoffTime: 30000
+      }
+    },
+    production: {
+      environment: 'production',
+      clientId: process.env.LINKEDIN_CLIENT_ID!,
+      clientSecret: process.env.LINKEDIN_CLIENT_SECRET!,
+      redirectUri: process.env.LINKEDIN_REDIRECT_URI!,
+      scopes: ['r_liteprofile', 'r_emailaddress', 'w_member_social', 'rw_ads'],
+      rateLimits: {
+        requestsPerMinute: 100,
+        requestsPerHour: 1000
+      },
+      timeouts: {
+        connection: 10000,
+        request: 60000
+      },
+      retryPolicy: {
+        maxRetries: 5,
+        backoffMultiplier: 1.5,
+        maxBackoffTime: 60000
+      }
+    }
+  }
+
+  static getConfig(environment: 'sandbox' | 'production' = 'sandbox'): LinkedInConfig {
+    const config = this.configs[environment]
+    if (!config) {
+      throw new Error(`Configuration not found for environment: ${environment}`)
+    }
+    return config
+  }
+
+  static validateConfig(config: LinkedInConfig): string[] {
+    const errors: string[] = []
+
+    if (!config.clientId) errors.push('Client ID is required')
+    if (!config.clientSecret) errors.push('Client Secret is required')
+    if (!config.redirectUri) errors.push('Redirect URI is required')
+    if (!config.scopes.length) errors.push('At least one scope is required')
+
+    return errors
+  }
+}
+```
+
+## Testing Patterns
+
+### Mock Client for Testing
+```typescript
+class LinkedInMockClient implements LinkedInApiClient {
+  private mockResponses: Map<string, any> = new Map()
+
+  setMockResponse(endpoint: string, response: any): void {
+    this.mockResponses.set(endpoint, response)
+  }
+
+  async get(endpoint: string): Promise<any> {
+    const response = this.mockResponses.get(endpoint)
+    if (!response) {
+      throw new Error(`Mock response not found for: ${endpoint}`)
+    }
+    return response
+  }
+
+  async post(endpoint: string, data: any): Promise<any> {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 100))
+    return { id: 'mock-id-' + Date.now(), ...data }
+  }
+
+  async put(endpoint: string, data: any): Promise<any> {
+    return { ...data, updatedAt: new Date().toISOString() }
+  }
+
+  async delete(endpoint: string): Promise<void> {
+    // Simulate successful deletion
+    return
+  }
+}
+
+// Usage in tests
+describe('MarketingCampaignManager', () => {
+  let mockClient: LinkedInMockClient
+  let campaignManager: MarketingCampaignManager
+
+  beforeEach(() => {
+    mockClient = new LinkedInMockClient()
+    campaignManager = new MarketingCampaignManager(mockClient, 'test-account')
+  })
+
+  it('should create campaign successfully', async () => {
+    const campaign = { name: 'Test Campaign', objectiveType: 'BRAND_AWARENESS' }
+
+    mockClient.setMockResponse('/v2/adCampaignsV2', {
+      id: 'urn:li:sponsoredCampaign:123',
+      ...campaign,
+      status: 'DRAFT'
+    })
+
+    const result = await campaignManager.createCampaign(campaign)
+    expect(result.id).toBe('urn:li:sponsoredCampaign:123')
+    expect(result.name).toBe('Test Campaign')
+  })
+})
+```
+
+### Integration Test Setup
+```typescript
+class LinkedInTestEnvironment {
+  private testAccountId: string
+  private testCampaignIds: string[] = []
+
+  async setup(): Promise<void> {
+    // Create test account
+    this.testAccountId = await this.createTestAccount()
+
+    // Create test campaigns
+    this.testCampaignIds = await Promise.all([
+      this.createTestCampaign('Test Campaign 1'),
+      this.createTestCampaign('Test Campaign 2')
+    ])
+  }
+
+  async teardown(): Promise<void> {
+    // Clean up test data
+    await Promise.all([
+      ...this.testCampaignIds.map(id => this.deleteCampaign(id)),
+      this.deleteAccount(this.testAccountId)
+    ])
+  }
+
+  private async createTestAccount(): Promise<string> {
+    // Create test account via API
+    return 'test-account-id'
+  }
+
+  private async createTestCampaign(name: string): Promise<string> {
+    // Create test campaign via API
+    return 'test-campaign-id'
+  }
+
+  private async deleteCampaign(id: string): Promise<void> {
+    // Delete campaign via API
+  }
+
+  private async deleteAccount(id: string): Promise<void> {
+    // Delete account via API
+  }
+}
+
+// Test helper
+export function withLinkedInTestEnvironment(testFn: (env: LinkedInTestEnvironment) => Promise<void>) {
+  return async () => {
+    const env = new LinkedInTestEnvironment()
+
+    try {
+      await env.setup()
+      await testFn(env)
+    } finally {
+      await env.teardown()
+    }
+  }
+}
+```
+
+## Monitoring & Observability
+
+### Metrics Collection
+```typescript
+interface LinkedInMetrics {
+  totalRequests: number
+  successfulRequests: number
+  failedRequests: number
+  rateLimitHits: number
+  averageResponseTime: number
+  requestsPerEndpoint: Record<string, number>
+  errorsPerEndpoint: Record<string, number>
+}
+
+class LinkedInMetricsCollector {
+  private metrics: LinkedInMetrics = {
+    totalRequests: 0,
+    successfulRequests: 0,
+    failedRequests: 0,
+    rateLimitHits: 0,
+    averageResponseTime: 0,
+    requestsPerEndpoint: {},
+    errorsPerEndpoint: {}
+  }
+
+  recordRequest(endpoint: string, startTime: number, success: boolean, error?: any): void {
+    this.metrics.totalRequests++
+
+    if (success) {
+      this.metrics.successfulRequests++
+    } else {
+      this.metrics.failedRequests++
+      this.recordError(endpoint, error)
+    }
+
+    this.updateResponseTime(Date.now() - startTime)
+    this.updateEndpointMetrics(endpoint, success)
+  }
+
+  private recordError(endpoint: string, error: any): void {
+    if (error?.status === 429) {
+      this.metrics.rateLimitHits++
+    }
+
+    const endpointKey = this.getEndpointKey(endpoint)
+    this.metrics.errorsPerEndpoint[endpointKey] =
+      (this.metrics.errorsPerEndpoint[endpointKey] || 0) + 1
+  }
+
+  private updateResponseTime(responseTime: number): void {
+    const alpha = 0.1 // Exponential moving average
+    this.metrics.averageResponseTime =
+      (1 - alpha) * this.metrics.averageResponseTime + alpha * responseTime
+  }
+
+  private updateEndpointMetrics(endpoint: string, success: boolean): void {
+    const endpointKey = this.getEndpointKey(endpoint)
+    this.metrics.requestsPerEndpoint[endpointKey] =
+      (this.metrics.requestsPerEndpoint[endpointKey] || 0) + 1
+  }
+
+  private getEndpointKey(endpoint: string): string {
+    // Group similar endpoints
+    if (endpoint.includes('/v2/adCampaigns')) return 'campaigns'
+    if (endpoint.includes('/v2/adAnalytics')) return 'analytics'
+    if (endpoint.includes('/v2/people')) return 'people'
+    return 'other'
+  }
+
+  getMetrics(): LinkedInMetrics {
+    return { ...this.metrics }
+  }
+
+  resetMetrics(): void {
+    this.metrics = {
+      totalRequests: 0,
+      successfulRequests: 0,
+      failedRequests: 0,
+      rateLimitHits: 0,
+      averageResponseTime: 0,
+      requestsPerEndpoint: {},
+      errorsPerEndpoint: {}
+    }
+  }
+}
+```
+
+## Performance Optimization
+
+### Connection Pooling
+```typescript
+class LinkedInConnectionPool {
+  private pool: LinkedInApiClient[] = []
+  private maxConnections = 10
+  private availableConnections: LinkedInApiClient[] = []
+
+  constructor(maxConnections: number = 10) {
+    this.maxConnections = maxConnections
+  }
+
+  async getConnection(): Promise<LinkedInApiClient> {
+    if (this.availableConnections.length > 0) {
+      return this.availableConnections.pop()!
+    }
+
+    if (this.pool.length < this.maxConnections) {
+      const connection = await this.createConnection()
+      this.pool.push(connection)
+      return connection
+    }
+
+    // Wait for available connection
+    return new Promise((resolve) => {
+      const checkAvailable = () => {
+        if (this.availableConnections.length > 0) {
+          resolve(this.availableConnections.pop()!)
+        } else {
+          setTimeout(checkAvailable, 100)
+        }
+      }
+      checkAvailable()
+    })
+  }
+
+  async releaseConnection(connection: LinkedInApiClient): Promise<void> {
+    if (this.pool.includes(connection)) {
+      this.availableConnections.push(connection)
+    }
+  }
+
+  private async createConnection(): Promise<LinkedInApiClient> {
+    // Create and authenticate new connection
+    return new LinkedInApiClient()
+  }
+
+  async closeAll(): Promise<void> {
+    await Promise.all(
+      this.pool.map(connection => connection.disconnect())
+    )
+    this.pool = []
+    this.availableConnections = []
+  }
+}
+```
+
+## References
+- [LinkedIn API Best Practices](https://learn.microsoft.com/en-us/linkedin/shared/api-guide/best-practices)
+- [Rate Limiting](https://learn.microsoft.com/en-us/linkedin/shared/api-guide/rate-limiting)
+- [API Versioning](https://learn.microsoft.com/en-us/linkedin/shared/api-guide/versioning)

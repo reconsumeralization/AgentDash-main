@@ -1,0 +1,22 @@
+{
+  "timestamp": "2025-09-22T15:10:40.685Z",
+  "duration": 12.075,
+  "options": {
+    "maxIterations": 5,
+    "delayBetweenRuns": 3000,
+    "enableAutoFix": true,
+    "enableMonitoring": true,
+    "parallelTests": false,
+    "generateReports": true
+  },
+  "summary": {
+    "totalRuns": 1,
+    "successfulRuns": 0,
+    "failedRuns": 1,
+    "issuesFound": 0,
+    "fixesApplied": 0,
+    "successRate": 0
+  },
+  "issues": [],
+  "fixes": []
+}

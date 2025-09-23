@@ -1,0 +1,41 @@
+{
+  "timestamp": "2025-09-22T15:38:23.606Z",
+  "duration": 2.787,
+  "results": {
+    "api": {
+      "passed": 0,
+      "failed": 0,
+      "total": 0,
+      "issues": []
+    },
+    "ui": {
+      "passed": 0,
+      "failed": 0,
+      "total": 0,
+      "issues": []
+    },
+    "integration": {
+      "passed": 0,
+      "failed": 0,
+      "total": 0,
+      "issues": []
+    },
+    "build": {
+      "passed": 0,
+      "failed": 1,
+      "total": 1,
+      "issues": [
+        "Command failed: npx tsc --noEmit"
+      ]
+    }
+  },
+  "issues": [],
+  "fixes": [],
+  "reports": [],
+  "summary": {
+    "totalTests": 1,
+    "totalPassed": 0,
+    "totalFailed": 1,
+    "successRate": 0
+  }
+}

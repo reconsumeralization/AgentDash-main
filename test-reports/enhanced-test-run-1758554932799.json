@@ -1,0 +1,41 @@
+{
+  "timestamp": "2025-09-22T15:28:52.799Z",
+  "duration": 0.005,
+  "results": {
+    "api": {
+      "passed": 0,
+      "failed": 0,
+      "total": 0,
+      "issues": []
+    },
+    "ui": {
+      "passed": 0,
+      "failed": 0,
+      "total": 0,
+      "issues": []
+    },
+    "integration": {
+      "passed": 0,
+      "failed": 0,
+      "total": 0,
+      "issues": []
+    },
+    "build": {
+      "passed": 0,
+      "failed": 1,
+      "total": 1,
+      "issues": [
+        "spawnSync C:\\Users\\recon\\Desktop\\AgentDash\\AgentDash-main\\node_modules\\.bin\\tsc.cmd EINVAL"
+      ]
+    }
+  },
+  "issues": [],
+  "fixes": [],
+  "reports": [],
+  "summary": {
+    "totalTests": 1,
+    "totalPassed": 0,
+    "totalFailed": 1,
+    "successRate": 0
+  }
+}

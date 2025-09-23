@@ -1,0 +1,300 @@
+---
+alwaysApply: false
+description: LinkedIn API permissions, scopes, and access patterns
+globs: *.ts,*.tsx,*.js,*.jsx
+---
+
+# LinkedIn API Permissions & Scopes
+
+## Permission Categories
+
+### Open Permissions (No Approval Required)
+
+**Consumer Solutions:**
+```typescript
+// Basic profile and authentication
+const OPEN_SCOPES = [
+  'profile',           // Basic profile info (name, photo, headline)
+  'email',            // Primary email address
+  'w_member_social'   // Post, comment, like on behalf of member
+] as const
+
+// Usage in authentication
+const authUrl = `https://www.linkedin.com/oauth/v2/authorization?` +
+  `response_type=code&` +
+  `client_id=${CLIENT_ID}&` +
+  `scope=${encodeURIComponent(OPEN_SCOPES.join(' '))}`
+```
+
+### Marketing Permissions (Approval Required)
+
+**Lead Generation & Advertising:**
+```typescript
+const MARKETING_SCOPES = [
+  'r_marketing_leadgen_automation',  // Lead generation forms
+  'rw_ads',                         // Campaign management
+  'r_ads_reporting',                // Analytics and reporting
+  'rw_organization_admin',          // Organization management
+  'r_organization_social',          // Organization social actions
+  'w_organization_social'           // Post on behalf of organization
+] as const
+
+// Campaign management example
+interface Campaign {
+  id: string
+  name: string
+  status: 'ACTIVE' | 'PAUSED' | 'ARCHIVED'
+  objectiveType: string
+  budget: {
+    amount: number
+    currencyCode: string
+  }
+}
+
+// Create campaign
+const createCampaign = async (campaign: Omit<Campaign, 'id'>) => {
+  const response = await fetch('https://api.linkedin.com/v2/adCampaignsV2', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(campaign)
+  })
+  return response.json()
+}
+```
+
+### Sales Permissions (SNAP Partner Required)
+
+**Sales Navigator:**
+```typescript
+const SALES_SCOPES = [
+  'r_sales_nav_analytics',     // Sales analytics
+  'r_sales_nav_display',       // Profile display services
+  'r_sales_nav_validation',    // CRM data validation
+  'r_sales_nav_profiles'       // Public profile information
+] as const
+
+// Sales analytics example
+interface SalesAnalytics {
+  seatHolder: {
+    firstName: string
+    lastName: string
+    email: string
+  }
+  socialSellingIndex: number
+  totalConnections: number
+  leadsSaved: number
+  messagesSent: number
+  profileViews: number
+}
+
+const getAnalytics = async (seatHolderId: string): Promise<SalesAnalytics> => {
+  const response = await fetch(
+    `https://api.linkedin.com/v2/sales/analytics/seatHolders/${seatHolderId}`,
+    {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    }
+  )
+  return response.json()
+}
+```
+
+### Talent Solutions (Partner Program Required)
+
+**Recruiting & ATS Integration:**
+```typescript
+const TALENT_SCOPES = [
+  'r_recruiting',              // Access recruiting data
+  'rw_recruiting',             // Manage recruiting data
+  'r_compliance',              // Compliance monitoring
+  'w_compliance'               // Compliance management
+] as const
+
+// Job posting example
+interface JobPosting {
+  integrationContext: string
+  companyName: string
+  jobTitle: string
+  location: string
+  description: string
+  employmentType: 'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'TEMPORARY'
+  experienceLevel: 'ENTRY_LEVEL' | 'MID_SENIOR' | 'SENIOR' | 'EXECUTIVE'
+  industries: string[]
+}
+
+const postJob = async (job: JobPosting) => {
+  const response = await fetch('https://api.linkedin.com/v2/jobs', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      'X-Restli-Protocol-Version': '2.0.0'
+    },
+    body: JSON.stringify(job)
+  })
+  return response.json()
+}
+```
+
+## Permission Request Patterns
+
+### Minimal Scope Principle
+Always request only the minimum permissions needed:
+
+```typescript
+// ❌ Bad - requesting too many permissions
+const broadScopes = ['profile', 'email', 'w_member_social', 'rw_ads', 'r_sales_nav_analytics']
+
+// ✅ Good - request only what's needed
+const minimalScopes = ['profile', 'email'] // For user authentication
+const marketingScopes = ['rw_ads', 'r_ads_reporting'] // For campaign management only
+```
+
+### Progressive Permission Requests
+Request permissions incrementally based on user actions:
+
+```typescript
+class PermissionManager {
+  private grantedScopes: Set<string> = new Set()
+
+  async requestScope(scope: string): Promise<boolean> {
+    if (this.grantedScopes.has(scope)) {
+      return true
+    }
+
+    const authUrl = this.buildAuthUrl([scope])
+    const success = await this.performOAuthFlow(authUrl)
+
+    if (success) {
+      this.grantedScopes.add(scope)
+    }
+
+    return success
+  }
+
+  async ensureScopes(requiredScopes: string[]): Promise<boolean> {
+    const missingScopes = requiredScopes.filter(scope => !this.grantedScopes.has(scope))
+
+    if (missingScopes.length === 0) {
+      return true
+    }
+
+    return this.requestScope(missingScopes[0]) // Request incrementally
+  }
+}
+```
+
+## Scope Validation
+
+### Runtime Scope Checking
+Validate permissions before making API calls:
+
+```typescript
+class LinkedInApiClient {
+  private availableScopes: Set<string>
+
+  constructor(accessToken: string, scopes: string[]) {
+    this.availableScopes = new Set(scopes)
+  }
+
+  private validateScope(requiredScope: string): void {
+    if (!this.availableScopes.has(requiredScope)) {
+      throw new Error(`Missing required scope: ${requiredScope}`)
+    }
+  }
+
+  async getProfile(): Promise<UserProfile> {
+    this.validateScope('profile')
+
+    const response = await fetch('https://api.linkedin.com/v2/people/~', {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    })
+
+    return response.json()
+  }
+
+  async postShare(content: string): Promise<ShareResponse> {
+    this.validateScope('w_member_social')
+
+    const response = await fetch('https://api.linkedin.com/v2/shares', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ content: { text: content } })
+    })
+
+    return response.json()
+  }
+}
+```
+
+## Business Line Integration Patterns
+
+### Marketing API Integration
+```typescript
+class MarketingClient {
+  async createCampaign(campaign: Campaign): Promise<CampaignResponse> {
+    await this.ensureScopes(['rw_ads'])
+
+    const response = await this.apiRequest('/v2/adCampaignsV2', {
+      method: 'POST',
+      body: JSON.stringify(campaign)
+    })
+
+    return response.json()
+  }
+
+  async getCampaignAnalytics(campaignId: string): Promise<AnalyticsData> {
+    await this.ensureScopes(['r_ads_reporting'])
+
+    return this.apiRequest(`/v2/adAnalytics?q=analytics&campaign=${campaignId}`)
+      .then(res => res.json())
+  }
+}
+```
+
+### Sales Navigator Integration
+```typescript
+class SalesClient {
+  async searchLeads(criteria: SearchCriteria): Promise<Lead[]> {
+    await this.ensureScopes(['r_sales_nav_profiles'])
+
+    const query = new URLSearchParams({
+      keywords: criteria.keywords,
+      companies: criteria.companyIds?.join(','),
+      titles: criteria.titles?.join(',')
+    })
+
+    return this.apiRequest(`/v2/sales/leadSearch?q=search&${query}`)
+      .then(res => res.json())
+  }
+}
+```
+
+## Error Handling for Permission Issues
+
+### Permission Denied Errors
+```typescript
+const handleApiError = (error: any) => {
+  if (error.status === 403) {
+    if (error.message?.includes('scope')) {
+      // Handle missing scope
+      console.error('Missing required scope:', error.message)
+      // Trigger re-authentication with additional scopes
+      return requestAdditionalScopes()
+    }
+  }
+
+  // Handle other errors
+  throw error
+}
+```
+
+## References
+- [Getting Access to LinkedIn APIs](https://learn.microsoft.com/en-us/linkedin/shared/authentication/getting-access)
+- [Marketing API Permissions](https://learn.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting)
+- [Sales Navigator API](https://learn.microsoft.com/en-us/linkedin/sales/sales-navigator-api)

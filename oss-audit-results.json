@@ -1,0 +1,872 @@
+{
+  "timestamp": "2025-09-18T17:20:52.531Z",
+  "totalDependencies": 73,
+  "licenseTypes": {
+    "Apache-2.0": 10,
+    "MIT": 59,
+    "Other": 3,
+    "ISC": 1
+  },
+  "complianceIssues": [
+    {
+      "package": "@coral-protocol/coral-studio",
+      "issue": "Unknown license",
+      "license": "Unknown"
+    }
+  ],
+  "attributionRequired": [
+    {
+      "name": "@vercel/analytics",
+      "version": "1.3.1",
+      "license": "MPL-2.0",
+      "repository": {
+        "url": "github:vercel/analytics",
+        "directory": "packages/web"
+      },
+      "description": "Gain real-time traffic insights with Vercel Web Analytics",
+      "licenseFile": "LICENSE"
+    }
+  ],
+  "summary": {},
+  "dependencies": {
+    "@ai-sdk/openai": {
+      "name": "@ai-sdk/openai",
+      "version": "2.0.32",
+      "license": "Apache-2.0",
+      "homepage": "https://ai-sdk.dev/docs",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/vercel/ai.git"
+      },
+      "licenseFile": "LICENSE"
+    },
+    "@clerk/nextjs": {
+      "name": "@clerk/nextjs",
+      "version": "6.32.0",
+      "license": "MIT",
+      "author": "Clerk",
+      "homepage": "https://clerk.com/",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/clerk/javascript.git",
+        "directory": "packages/nextjs"
+      },
+      "description": "Clerk SDK for NextJS",
+      "licenseFile": "LICENSE"
+    },
+    "@coral-protocol/coral-studio": {
+      "name": "@coral-protocol/coral-studio",
+      "version": "0.1.3",
+      "license": "Unknown",
+      "licenseFile": null
+    },
+    "@hookform/resolvers": {
+      "name": "@hookform/resolvers",
+      "version": "3.10.0",
+      "license": "MIT",
+      "author": "bluebill1049 <bluebill1049@hotmail.com>",
+      "homepage": "https://react-hook-form.com",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/react-hook-form/resolvers.git"
+      },
+      "description": "React Hook Form validation resolvers: Yup, Joi, Superstruct, Zod, Vest, Class Validator, io-ts, Nope, computed-types, TypeBox, arktype, Typanion, Effect-TS and VineJS",
+      "licenseFile": "LICENSE"
+    },
+    "@radix-ui/react-accordion": {
+      "name": "@radix-ui/react-accordion",
+      "version": "1.2.2",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-alert-dialog": {
+      "name": "@radix-ui/react-alert-dialog",
+      "version": "1.1.4",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-aspect-ratio": {
+      "name": "@radix-ui/react-aspect-ratio",
+      "version": "1.1.1",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-avatar": {
+      "name": "@radix-ui/react-avatar",
+      "version": "1.1.2",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-checkbox": {
+      "name": "@radix-ui/react-checkbox",
+      "version": "1.1.3",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-collapsible": {
+      "name": "@radix-ui/react-collapsible",
+      "version": "1.1.2",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-context-menu": {
+      "name": "@radix-ui/react-context-menu",
+      "version": "2.2.4",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-dialog": {
+      "name": "@radix-ui/react-dialog",
+      "version": "1.1.4",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-dropdown-menu": {
+      "name": "@radix-ui/react-dropdown-menu",
+      "version": "2.1.4",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-hover-card": {
+      "name": "@radix-ui/react-hover-card",
+      "version": "1.1.4",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-label": {
+      "name": "@radix-ui/react-label",
+      "version": "2.1.1",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-menubar": {
+      "name": "@radix-ui/react-menubar",
+      "version": "1.1.4",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-navigation-menu": {
+      "name": "@radix-ui/react-navigation-menu",
+      "version": "1.2.3",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-popover": {
+      "name": "@radix-ui/react-popover",
+      "version": "1.1.4",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-progress": {
+      "name": "@radix-ui/react-progress",
+      "version": "1.1.1",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-radio-group": {
+      "name": "@radix-ui/react-radio-group",
+      "version": "1.2.2",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-scroll-area": {
+      "name": "@radix-ui/react-scroll-area",
+      "version": "1.2.2",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-select": {
+      "name": "@radix-ui/react-select",
+      "version": "2.1.4",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-separator": {
+      "name": "@radix-ui/react-separator",
+      "version": "1.1.1",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-slider": {
+      "name": "@radix-ui/react-slider",
+      "version": "1.2.2",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-slot": {
+      "name": "@radix-ui/react-slot",
+      "version": "1.1.1",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-switch": {
+      "name": "@radix-ui/react-switch",
+      "version": "1.1.2",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-tabs": {
+      "name": "@radix-ui/react-tabs",
+      "version": "1.1.2",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-toast": {
+      "name": "@radix-ui/react-toast",
+      "version": "1.2.4",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-toggle": {
+      "name": "@radix-ui/react-toggle",
+      "version": "1.1.1",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-toggle-group": {
+      "name": "@radix-ui/react-toggle-group",
+      "version": "1.1.1",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@radix-ui/react-tooltip": {
+      "name": "@radix-ui/react-tooltip",
+      "version": "1.1.6",
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radix-ui/primitives.git"
+      },
+      "licenseFile": null
+    },
+    "@solana/wallet-adapter-base": {
+      "name": "@solana/wallet-adapter-base",
+      "version": "0.9.27",
+      "license": "Apache-2.0",
+      "author": "Solana Maintainers <maintainers@solana.foundation>",
+      "repository": "https://github.com/anza-xyz/wallet-adapter",
+      "licenseFile": "LICENSE"
+    },
+    "@solana/wallet-adapter-react": {
+      "name": "@solana/wallet-adapter-react",
+      "version": "0.15.39",
+      "license": "Apache-2.0",
+      "author": "Solana Maintainers <maintainers@solana.foundation>",
+      "repository": "https://github.com/anza-xyz/wallet-adapter",
+      "licenseFile": "LICENSE"
+    },
+    "@solana/wallet-adapter-react-ui": {
+      "name": "@solana/wallet-adapter-react-ui",
+      "version": "0.9.39",
+      "license": "Apache-2.0",
+      "author": "Solana Maintainers <maintainers@solana.foundation>",
+      "repository": "https://github.com/anza-xyz/wallet-adapter",
+      "licenseFile": "LICENSE"
+    },
+    "@solana/wallet-adapter-wallets": {
+      "name": "@solana/wallet-adapter-wallets",
+      "version": "0.19.37",
+      "license": "Apache-2.0",
+      "author": "Solana Maintainers <maintainers@solana.foundation>",
+      "repository": "https://github.com/anza-xyz/wallet-adapter",
+      "licenseFile": "LICENSE"
+    },
+    "@solana/web3.js": {
+      "name": "@solana/web3.js",
+      "version": "1.98.4",
+      "license": "MIT",
+      "author": "Solana Labs Maintainers <maintainers@solanalabs.com>",
+      "homepage": "https://solana.com/",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/solana-foundation/solana-web3.js.git"
+      },
+      "description": "Solana Javascript API",
+      "licenseFile": "LICENSE"
+    },
+    "@supabase/supabase-js": {
+      "name": "@supabase/supabase-js",
+      "version": "2.57.4",
+      "license": "MIT",
+      "author": "Supabase",
+      "homepage": "https://github.com/supabase/supabase-js",
+      "repository": "supabase/supabase-js",
+      "description": "Isomorphic Javascript client for Supabase",
+      "licenseFile": "LICENSE"
+    },
+    "@vercel/analytics": {
+      "name": "@vercel/analytics",
+      "version": "1.3.1",
+      "license": "MPL-2.0",
+      "repository": {
+        "url": "github:vercel/analytics",
+        "directory": "packages/web"
+      },
+      "description": "Gain real-time traffic insights with Vercel Web Analytics",
+      "licenseFile": "LICENSE"
+    },
+    "@vercel/blob": {
+      "name": "@vercel/blob",
+      "version": "2.0.0",
+      "license": "Apache-2.0",
+      "homepage": "https://vercel.com/storage/blob",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/vercel/storage.git",
+        "directory": "packages/blob"
+      },
+      "description": "The Vercel Blob JavaScript API client",
+      "licenseFile": "LICENSE.md"
+    },
+    "@xyflow/react": {
+      "name": "@xyflow/react",
+      "version": "12.8.5",
+      "license": "MIT",
+      "homepage": "https://reactflow.dev",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/xyflow/xyflow.git",
+        "directory": "packages/react"
+      },
+      "description": "React Flow - A highly customizable React library for building node-based editors and interactive flow charts.",
+      "licenseFile": "LICENSE"
+    },
+    "ai": {
+      "name": "ai",
+      "version": "5.0.45",
+      "license": "Apache-2.0",
+      "homepage": "https://ai-sdk.dev/docs",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/vercel/ai.git"
+      },
+      "description": "AI SDK by Vercel - The AI Toolkit for TypeScript and JavaScript",
+      "licenseFile": "LICENSE"
+    },
+    "autoprefixer": {
+      "name": "autoprefixer",
+      "version": "10.4.21",
+      "license": "MIT",
+      "author": "Andrey Sitnik <andrey@sitnik.ru>",
+      "repository": "postcss/autoprefixer",
+      "description": "Parse CSS and add vendor prefixes to CSS rules using values from the Can I Use website",
+      "licenseFile": "LICENSE"
+    },
+    "class-variance-authority": {
+      "name": "class-variance-authority",
+      "version": "0.7.1",
+      "license": "Apache-2.0",
+      "author": "Joe Bell (https://joebell.co.uk)",
+      "homepage": "https://github.com/joe-bell/cva#readme",
+      "repository": "https://github.com/joe-bell/cva.git",
+      "description": "Class Variance Authority 🧬",
+      "licenseFile": "LICENSE"
+    },
+    "clsx": {
+      "name": "clsx",
+      "version": "2.1.1",
+      "license": "MIT",
+      "author": {
+        "name": "Luke Edwards",
+        "email": "luke.edwards05@gmail.com",
+        "url": "https://lukeed.com"
+      },
+      "repository": "lukeed/clsx",
+      "description": "A tiny (239B) utility for constructing className strings conditionally.",
+      "licenseFile": "LICENSE"
+    },
+    "cmdk": {
+      "name": "cmdk",
+      "version": "1.0.4",
+      "license": "MIT",
+      "author": {
+        "name": "Paco",
+        "url": "https://github.com/pacocoursey"
+      },
+      "homepage": "https://github.com/pacocoursey/cmdk#readme",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/pacocoursey/cmdk.git",
+        "directory": "cmdk"
+      },
+      "licenseFile": "LICENSE.md"
+    },
+    "date-fns": {
+      "name": "date-fns",
+      "version": "4.1.0",
+      "license": "MIT",
+      "repository": "https://github.com/date-fns/date-fns",
+      "description": "Modern JavaScript date utility library",
+      "licenseFile": "LICENSE.md"
+    },
+    "embla-carousel-react": {
+      "name": "embla-carousel-react",
+      "version": "8.5.1",
+      "license": "MIT",
+      "author": "David Jerleke",
+      "homepage": "https://www.embla-carousel.com",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/davidjerleke/embla-carousel"
+      },
+      "description": "A lightweight carousel library with fluid motion and great swipe precision",
+      "licenseFile": null
+    },
+    "geist": {
+      "name": "geist",
+      "version": "1.5.1",
+      "license": "SIL OPEN FONT LICENSE",
+      "homepage": "https://vercel.com/font",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/vercel/geist-font",
+        "directory": "packages/next"
+      },
+      "description": "Geist is a new font family for Vercel, created by Vercel in collaboration with Basement Studio.",
+      "licenseFile": "LICENSE.txt"
+    },
+    "input-otp": {
+      "name": "input-otp",
+      "version": "1.4.1",
+      "license": "MIT",
+      "author": "Guilherme Rodz <g@rodz.dev>",
+      "homepage": "https://input-otp.rodz.dev/",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/guilhermerodz/input-otp.git",
+        "directory": "packages/input-otp"
+      },
+      "description": "One-time password input component for React.",
+      "licenseFile": null
+    },
+    "lucide-react": {
+      "name": "lucide-react",
+      "version": "0.454.0",
+      "license": "ISC",
+      "author": "Eric Fennis",
+      "homepage": "https://lucide.dev",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/lucide-icons/lucide.git",
+        "directory": "packages/lucide-react"
+      },
+      "description": "A Lucide icon library package for React applications",
+      "licenseFile": "LICENSE"
+    },
+    "next": {
+      "name": "next",
+      "version": "15.5.3",
+      "license": "MIT",
+      "homepage": "https://nextjs.org",
+      "repository": "vercel/next.js",
+      "description": "The React Framework",
+      "licenseFile": "LICENSE.md"
+    },
+    "next-themes": {
+      "name": "next-themes",
+      "version": "0.4.6",
+      "license": "MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/pacocoursey/next-themes.git"
+      },
+      "licenseFile": "LICENSE.md"
+    },
+    "react": {
+      "name": "react",
+      "version": "19.1.1",
+      "license": "MIT",
+      "homepage": "https://react.dev/",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/facebook/react.git",
+        "directory": "packages/react"
+      },
+      "description": "React is a JavaScript library for building user interfaces.",
+      "licenseFile": "LICENSE"
+    },
+    "react-day-picker": {
+      "name": "react-day-picker",
+      "version": "9.8.0",
+      "license": "MIT",
+      "author": "Giampaolo Bellavite <io@gpbl.dev>",
+      "homepage": "https://daypicker.dev",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/gpbl/react-day-picker"
+      },
+      "description": "Customizable Date Picker for React",
+      "licenseFile": "LICENSE"
+    },
+    "react-dom": {
+      "name": "react-dom",
+      "version": "19.1.1",
+      "license": "MIT",
+      "homepage": "https://react.dev/",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/facebook/react.git",
+        "directory": "packages/react-dom"
+      },
+      "description": "React package for working with the DOM.",
+      "licenseFile": "LICENSE"
+    },
+    "react-hook-form": {
+      "name": "react-hook-form",
+      "version": "7.62.0",
+      "license": "MIT",
+      "author": "Beier(Bill) Luo <bluebill1049@hotmail.com>",
+      "homepage": "https://react-hook-form.com",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/react-hook-form/react-hook-form"
+      },
+      "description": "Performant, flexible and extensible forms library for React Hooks",
+      "licenseFile": "LICENSE"
+    },
+    "react-resizable-panels": {
+      "name": "react-resizable-panels",
+      "version": "2.1.9",
+      "license": "MIT",
+      "author": "Brian Vaughn <brian.david.vaughn@gmail.com>",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/bvaughn/react-resizable-panels.git"
+      },
+      "description": "React components for resizable panel groups/layouts",
+      "licenseFile": "LICENSE"
+    },
+    "recharts": {
+      "name": "recharts",
+      "version": "2.15.4",
+      "license": "MIT",
+      "author": {
+        "name": "recharts group"
+      },
+      "homepage": "https://github.com/recharts/recharts",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/recharts/recharts.git"
+      },
+      "description": "React charts",
+      "licenseFile": "LICENSE"
+    },
+    "sonner": {
+      "name": "sonner",
+      "version": "2.0.7",
+      "license": "MIT",
+      "author": "Emil Kowalski <e@emilkowal.ski>",
+      "homepage": "https://sonner.emilkowal.ski/",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/emilkowalski/sonner.git"
+      },
+      "description": "An opinionated toast component for React.",
+      "licenseFile": "LICENSE.md"
+    },
+    "tailwind-merge": {
+      "name": "tailwind-merge",
+      "version": "2.6.0",
+      "license": "MIT",
+      "author": "Dany Castillo",
+      "homepage": "https://github.com/dcastil/tailwind-merge",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/dcastil/tailwind-merge.git"
+      },
+      "description": "Merge Tailwind CSS classes without style conflicts",
+      "licenseFile": "LICENSE.md"
+    },
+    "tailwindcss-animate": {
+      "name": "tailwindcss-animate",
+      "version": "1.0.7",
+      "license": "MIT",
+      "author": "Jamie Kyle <me@thejameskyle.com>",
+      "description": "A Tailwind CSS plugin for creating beautiful animations.",
+      "licenseFile": "LICENSE"
+    },
+    "vaul": {
+      "name": "vaul",
+      "version": "0.9.9",
+      "license": "MIT",
+      "author": "Emil Kowalski <e@emilkowal.ski>",
+      "homepage": "https://vaul.emilkowal.ski/",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/emilkowalski/vaul.git"
+      },
+      "description": "Drawer component for React.",
+      "licenseFile": "LICENSE.md"
+    },
+    "zod": {
+      "name": "zod",
+      "version": "3.25.67",
+      "license": "MIT",
+      "author": "Colin McDonnell <zod@colinhacks.com>",
+      "homepage": "https://zod.dev",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/colinhacks/zod.git"
+      },
+      "description": "TypeScript-first schema declaration and validation library with static type inference",
+      "licenseFile": "LICENSE"
+    },
+    "@playwright/test": {
+      "name": "@playwright/test",
+      "version": "1.55.0",
+      "license": "Apache-2.0",
+      "author": {
+        "name": "Microsoft Corporation"
+      },
+      "homepage": "https://playwright.dev",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/microsoft/playwright.git"
+      },
+      "description": "A high-level API to automate web browsers",
+      "licenseFile": "LICENSE"
+    },
+    "@tailwindcss/postcss": {
+      "name": "@tailwindcss/postcss",
+      "version": "4.1.13",
+      "license": "MIT",
+      "homepage": "https://tailwindcss.com",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/tailwindlabs/tailwindcss.git",
+        "directory": "packages/@tailwindcss-postcss"
+      },
+      "description": "PostCSS plugin for Tailwind CSS, a utility-first CSS framework for rapidly building custom user interfaces",
+      "licenseFile": "LICENSE"
+    },
+    "@types/node": {
+      "name": "@types/node",
+      "version": "22.18.6",
+      "license": "MIT",
+      "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/node",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "directory": "types/node"
+      },
+      "description": "TypeScript definitions for node",
+      "licenseFile": "LICENSE"
+    },
+    "@types/react": {
+      "name": "@types/react",
+      "version": "19.1.13",
+      "license": "MIT",
+      "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/react",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "directory": "types/react"
+      },
+      "description": "TypeScript definitions for react",
+      "licenseFile": "LICENSE"
+    },
+    "@types/react-dom": {
+      "name": "@types/react-dom",
+      "version": "19.1.9",
+      "license": "MIT",
+      "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/react-dom",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "directory": "types/react-dom"
+      },
+      "description": "TypeScript definitions for react-dom",
+      "licenseFile": "LICENSE"
+    },
+    "eslint": {
+      "name": "eslint",
+      "version": "8.57.1",
+      "license": "MIT",
+      "author": "Nicholas C. Zakas <nicholas+npm@nczconsulting.com>",
+      "homepage": "https://eslint.org",
+      "repository": "eslint/eslint",
+      "description": "An AST-based pattern checker for JavaScript.",
+      "licenseFile": "LICENSE"
+    },
+    "postcss": {
+      "name": "postcss",
+      "version": "8.5.6",
+      "license": "MIT",
+      "author": "Andrey Sitnik <andrey@sitnik.ru>",
+      "homepage": "https://postcss.org/",
+      "repository": "postcss/postcss",
+      "description": "Tool for transforming styles with JS plugins",
+      "licenseFile": "LICENSE"
+    },
+    "tailwindcss": {
+      "name": "tailwindcss",
+      "version": "4.1.13",
+      "license": "MIT",
+      "homepage": "https://tailwindcss.com",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/tailwindlabs/tailwindcss.git",
+        "directory": "packages/tailwindcss"
+      },
+      "description": "A utility-first CSS framework for rapidly building custom user interfaces.",
+      "licenseFile": "LICENSE"
+    },
+    "tw-animate-css": {
+      "name": "tw-animate-css",
+      "version": "1.3.3",
+      "license": "MIT",
+      "author": {
+        "name": "Luca Bosin",
+        "url": "https://github.com/Wombosvideo"
+      },
+      "homepage": "https://github.com/Wombosvideo/tw-animate-css#readme",
+      "repository": "Wombosvideo/tw-animate-css",
+      "description": "TailwindCSS v4.0 compatible replacement for `tailwindcss-animate`.",
+      "licenseFile": "LICENSE"
+    },
+    "typescript": {
+      "name": "typescript",
+      "version": "5.9.2",
+      "license": "Apache-2.0",
+      "author": "Microsoft Corp.",
+      "homepage": "https://www.typescriptlang.org/",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/microsoft/TypeScript.git"
+      },
+      "description": "TypeScript is a language for application scale JavaScript development",
+      "licenseFile": "LICENSE.txt"
+    }
+  }
+}

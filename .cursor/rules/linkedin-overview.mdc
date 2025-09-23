@@ -1,0 +1,519 @@
+---
+alwaysApply: false
+description: Comprehensive overview of LinkedIn API integration patterns and guidelines
+globs: *.ts,*.tsx,*.js,*.jsx
+---
+
+# LinkedIn API Integration Overview
+
+## 🚀 Quick Start Guide
+
+### 1. Choose Your Business Line
+```typescript
+// Consumer (Sign in with LinkedIn)
+const consumerScopes = ['profile', 'email', 'w_member_social']
+
+// Marketing (Campaign Management)
+const marketingScopes = ['rw_ads', 'r_ads_reporting', 'r_marketing_leadgen_automation']
+
+// Sales (Sales Navigator)
+const salesScopes = ['r_sales_nav_analytics', 'r_sales_nav_display', 'r_sales_nav_profiles']
+
+// Talent (Recruiting)
+const talentScopes = ['r_recruiting', 'rw_recruiting', 'r_compliance']
+```
+
+### 2. Set Up Authentication
+```typescript
+import { LinkedInClientFactory } from './linkedin-client-factory'
+
+const client = LinkedInClientFactory.create({
+  clientId: process.env.LINKEDIN_CLIENT_ID!,
+  clientSecret: process.env.LINKEDIN_CLIENT_SECRET!,
+  redirectUri: process.env.LINKEDIN_REDIRECT_URI!,
+  scopes: marketingScopes,
+  businessLines: ['marketing', 'sales']
+})
+```
+
+### 3. Make Your First API Call
+```typescript
+// Get user profile
+const profile = await client.getProfile()
+
+// Create a campaign
+const campaign = await client.marketing.createCampaign({
+  name: 'My First Campaign',
+  objectiveType: 'BRAND_AWARENESS',
+  budget: { amount: 100, currencyCode: 'USD', type: 'DAILY' }
+})
+
+// Search for leads
+const leads = await client.sales.searchLeads({
+  keywords: 'software engineer',
+  location: 'San Francisco'
+})
+```
+
+## 📊 Business Line Comparison
+
+| Feature | Consumer | Marketing | Sales | Talent | Learning | Compliance |
+|---------|----------|-----------|-------|--------|----------|------------|
+| **Authentication** | 3-legged OAuth | 3-legged OAuth | 3-legged OAuth | 3-legged OAuth | 3-legged OAuth | 3-legged OAuth |
+| **Rate Limits** | Low | High | Medium | Medium | Low | High |
+| **Partner Program** | No | Yes (Approval) | Yes (SNAP) | Yes (RSC/APJC) | No | Yes (Closed) |
+| **Primary Use Case** | User Auth | Advertising | Lead Gen | Recruiting | Content | Audit |
+| **Data Access** | User Profile | Campaign Analytics | Company Profiles | Job Applications | Learning Content | Activity Logs |
+
+## 🔧 Core Integration Patterns
+
+### Error Handling Strategy
+```typescript
+class LinkedInIntegration {
+  async safeApiCall<T>(
+    operation: () => Promise<T>,
+    context: string
+  ): Promise<T> {
+    try {
+      return await operation()
+    } catch (error) {
+      if (error instanceof LinkedInApiException) {
+        await this.handleLinkedInError(error, context)
+      }
+      throw error
+    }
+  }
+
+  private async handleLinkedInError(error: LinkedInApiException, context: string): Promise<void> {
+    console.error(`LinkedIn API Error in ${context}:`, error.message)
+
+    // Log to monitoring system
+    await this.logError({
+      service: 'linkedin',
+      context,
+      error: error.message,
+      status: error.status,
+      timestamp: new Date()
+    })
+
+    // Handle specific error types
+    if (error.status === 401) {
+      await this.handleTokenRefresh()
+    } else if (error.status === 429) {
+      await this.handleRateLimit(error)
+    } else if (error.status >= 500) {
+      await this.handleServerError(error)
+    }
+  }
+}
+```
+
+### Rate Limit Management
+```typescript
+class RateLimitManager {
+  private requests = new Map<string, number[]>()
+
+  async throttle(endpoint: string): Promise<void> {
+    const now = Date.now()
+    const windowStart = now - 60000 // 1 minute window
+
+    // Clean old requests
+    const endpointRequests = this.requests.get(endpoint) || []
+    const recentRequests = endpointRequests.filter(time => time > windowStart)
+
+    // Check limits
+    if (recentRequests.length >= 100) { // 100 requests per minute
+      const oldestRequest = Math.min(...recentRequests)
+      const waitTime = 60000 - (now - oldestRequest)
+      await new Promise(resolve => setTimeout(resolve, waitTime))
+    }
+
+    // Record this request
+    recentRequests.push(now)
+    this.requests.set(endpoint, recentRequests)
+  }
+}
+```
+
+### Configuration Management
+```typescript
+interface LinkedInIntegrationConfig {
+  environment: 'sandbox' | 'production'
+  credentials: {
+    clientId: string
+    clientSecret: string
+    redirectUri: string
+  }
+  features: {
+    marketing: boolean
+    sales: boolean
+    talent: boolean
+    learning: boolean
+    compliance: boolean
+  }
+  limits: {
+    maxRetries: number
+    requestTimeout: number
+    rateLimitBuffer: number
+  }
+}
+
+class ConfigValidator {
+  static validate(config: LinkedInIntegrationConfig): string[] {
+    const errors: string[] = []
+
+    if (!config.credentials.clientId) {
+      errors.push('Client ID is required')
+    }
+
+    if (!config.credentials.clientSecret) {
+      errors.push('Client Secret is required')
+    }
+
+    if (!config.credentials.redirectUri) {
+      errors.push('Redirect URI is required')
+    }
+
+    const hasFeatures = Object.values(config.features).some(enabled => enabled)
+    if (!hasFeatures) {
+      errors.push('At least one business line feature must be enabled')
+    }
+
+    return errors
+  }
+}
+```
+
+## 🎯 Common Integration Scenarios
+
+### 1. User Authentication Flow
+```typescript
+class LinkedInAuthService {
+  async authenticateUser(): Promise<UserProfile> {
+    // Step 1: Redirect to LinkedIn for authorization
+    const authUrl = this.buildAuthUrl(['profile', 'email'])
+    window.location.href = authUrl
+
+    // Step 2: Handle callback (in callback page)
+    const { code } = this.parseCallbackParams()
+    const tokens = await this.exchangeCodeForTokens(code)
+
+    // Step 3: Get user profile
+    const profile = await this.getUserProfile(tokens.access_token)
+
+    return profile
+  }
+
+  private buildAuthUrl(scopes: string[]): string {
+    const params = new URLSearchParams({
+      response_type: 'code',
+      client_id: this.clientId,
+      redirect_uri: this.redirectUri,
+      scope: scopes.join(' '),
+      state: this.generateState()
+    })
+
+    return `https://www.linkedin.com/oauth/v2/authorization?${params}`
+  }
+}
+```
+
+### 2. Campaign Management System
+```typescript
+class CampaignManager {
+  async createAndMonitorCampaign(campaignData: CampaignInput): Promise<Campaign> {
+    // Create campaign
+    const campaign = await this.linkedinClient.marketing.createCampaign(campaignData)
+
+    // Set up monitoring
+    await this.setupCampaignMonitoring(campaign.id)
+
+    // Schedule performance reports
+    await this.schedulePerformanceReports(campaign.id)
+
+    return campaign
+  }
+
+  private async setupCampaignMonitoring(campaignId: string): Promise<void> {
+    // Set up webhooks for campaign updates
+    await this.linkedinClient.webhooks.create({
+      resource: `/adCampaigns/${campaignId}`,
+      events: ['CAMPAIGN_UPDATED', 'CAMPAIGN_PAUSED'],
+      callbackUrl: `${this.baseUrl}/webhooks/campaign-updates`
+    })
+  }
+}
+```
+
+### 3. Lead Generation Pipeline
+```typescript
+class LeadGenerationPipeline {
+  async processLeadGenerationForm(formId: string): Promise<void> {
+    // Get new submissions
+    const submissions = await this.linkedinClient.marketing.getFormSubmissions(formId)
+
+    for (const submission of submissions) {
+      await this.processSubmission(submission)
+    }
+  }
+
+  private async processSubmission(submission: LeadSubmission): Promise<void> {
+    // Validate submission
+    const validationResult = await this.validateSubmission(submission)
+
+    if (!validationResult.isValid) {
+      await this.handleInvalidSubmission(submission, validationResult.errors)
+      return
+    }
+
+    // Enrich lead data
+    const enrichedLead = await this.enrichLeadData(submission)
+
+    // Add to CRM
+    await this.crmClient.createLead(enrichedLead)
+
+    // Send welcome email
+    await this.emailService.sendWelcomeEmail(enrichedLead.email)
+  }
+}
+```
+
+### 4. Job Posting Integration
+```typescript
+class JobPostingIntegration {
+  async syncJobPosting(internalJob: InternalJobPosting): Promise<LinkedInJob> {
+    // Transform internal job to LinkedIn format
+    const linkedinJob = this.transformJobForLinkedIn(internalJob)
+
+    // Create job posting
+    const createdJob = await this.linkedinClient.talent.createJob(linkedinJob)
+
+    // Set up application tracking
+    await this.setupApplicationTracking(createdJob.id)
+
+    // Update internal system with LinkedIn job ID
+    await this.internalApi.updateJob(internalJob.id, {
+      linkedinJobId: createdJob.id
+    })
+
+    return createdJob
+  }
+
+  private async setupApplicationTracking(jobId: string): Promise<void> {
+    // Webhook for new applications
+    await this.linkedinClient.webhooks.create({
+      resource: `/jobs/${jobId}/applications`,
+      events: ['APPLICATION_SUBMITTED'],
+      callbackUrl: `${this.baseUrl}/webhooks/job-applications`
+    })
+  }
+}
+```
+
+## 🔒 Security Best Practices
+
+### Token Management
+```typescript
+class TokenManager {
+  private tokens: Map<string, TokenInfo> = new Map()
+
+  async getValidToken(userId: string): Promise<string> {
+    const tokenInfo = this.tokens.get(userId)
+
+    if (!tokenInfo) {
+      throw new Error('No token found for user')
+    }
+
+    if (this.isTokenExpired(tokenInfo)) {
+      const refreshed = await this.refreshToken(tokenInfo.refreshToken)
+      this.tokens.set(userId, refreshed)
+      return refreshed.accessToken
+    }
+
+    return tokenInfo.accessToken
+  }
+
+  private isTokenExpired(tokenInfo: TokenInfo): boolean {
+    const now = Date.now()
+    const expiresAt = tokenInfo.createdAt + (tokenInfo.expiresIn * 1000)
+    const buffer = 5 * 60 * 1000 // 5 minutes buffer
+    return now >= (expiresAt - buffer)
+  }
+
+  private async refreshToken(refreshToken: string): Promise<TokenInfo> {
+    const response = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+        client_id: this.clientId,
+        client_secret: this.clientSecret
+      })
+    })
+
+    const data = await response.json()
+    return {
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token || refreshToken,
+      expiresIn: data.expires_in,
+      createdAt: Date.now()
+    }
+  }
+}
+```
+
+### Data Protection
+```typescript
+class DataProtectionManager {
+  async anonymizeData(data: any): Promise<any> {
+    // Remove PII before logging
+    const sanitized = { ...data }
+
+    // Remove sensitive fields
+    delete sanitized.email
+    delete sanitized.phone
+    delete sanitized.firstName
+    delete sanitized.lastName
+
+    return sanitized
+  }
+
+  async encryptSensitiveData(data: string): Promise<string> {
+    // Use strong encryption for sensitive data
+    const algorithm = 'aes-256-gcm'
+    const key = await this.getEncryptionKey()
+    // Implementation would use crypto module
+    return encryptedData
+  }
+
+  validateDataRetention(data: any): boolean {
+    // Ensure data doesn't exceed retention limits
+    const createdAt = new Date(data.createdAt)
+    const maxRetention = 7 * 24 * 60 * 60 * 1000 // 7 days
+    const now = Date.now()
+
+    return (now - createdAt.getTime()) <= maxRetention
+  }
+}
+```
+
+## 📈 Monitoring & Analytics
+
+### Integration Health Dashboard
+```typescript
+class IntegrationDashboard {
+  async getHealthMetrics(): Promise<HealthMetrics> {
+    return {
+      apiCalls: await this.getApiCallMetrics(),
+      errorRates: await this.getErrorRateMetrics(),
+      responseTimes: await this.getResponseTimeMetrics(),
+      businessMetrics: await this.getBusinessMetrics()
+    }
+  }
+
+  private async getApiCallMetrics(): Promise<ApiCallMetrics> {
+    // Aggregate API call data from logs
+    const metrics = await this.metricsStore.getMetrics('linkedin_api_calls', {
+      timeframe: '24h',
+      groupBy: 'endpoint'
+    })
+
+    return {
+      totalCalls: metrics.total,
+      callsPerEndpoint: metrics.byEndpoint,
+      callsPerHour: metrics.byHour
+    }
+  }
+
+  private async getBusinessMetrics(): Promise<BusinessMetrics> {
+    return {
+      campaignsCreated: await this.getCampaignCreationCount(),
+      leadsGenerated: await this.getLeadGenerationCount(),
+      jobsPosted: await this.getJobPostingCount(),
+      applicationsReceived: await this.getApplicationCount()
+    }
+  }
+}
+```
+
+### Alert System
+```typescript
+class AlertManager {
+  async checkHealth(): Promise<void> {
+    const metrics = await this.dashboard.getHealthMetrics()
+
+    // Check error rate threshold
+    if (metrics.errorRates.overall > 0.05) { // 5% error rate
+      await this.sendAlert('High Error Rate', `Error rate is ${metrics.errorRates.overall * 100}%`)
+    }
+
+    // Check response time threshold
+    if (metrics.responseTimes.average > 5000) { // 5 seconds
+      await this.sendAlert('Slow Response Times', `Average response time is ${metrics.responseTimes.average}ms`)
+    }
+
+    // Check rate limit hits
+    if (metrics.apiCalls.rateLimitHits > 10) {
+      await this.sendAlert('Rate Limit Issues', `Hit rate limits ${metrics.apiCalls.rateLimitHits} times`)
+    }
+  }
+
+  private async sendAlert(title: string, message: string): Promise<void> {
+    // Send to monitoring system (DataDog, New Relic, etc.)
+    await this.monitoringClient.sendAlert({
+      title,
+      message,
+      severity: 'warning',
+      tags: ['linkedin', 'api', 'integration']
+    })
+  }
+}
+```
+
+## 🎯 Success Metrics
+
+### Key Performance Indicators
+- **API Success Rate**: > 99.5%
+- **Average Response Time**: < 2 seconds
+- **Rate Limit Hit Rate**: < 1%
+- **Data Freshness**: < 15 minutes
+- **User Authentication Success**: > 95%
+
+### Business Impact Metrics
+- **Campaign Performance**: ROI improvement
+- **Lead Quality**: Conversion rate increase
+- **Time to Hire**: Reduction in days
+- **User Engagement**: Session duration increase
+
+## 📚 Additional Resources
+
+### Documentation Links
+- [LinkedIn Developer Portal](https://developer.linkedin.com/)
+- [API Reference](https://docs.microsoft.com/en-us/linkedin/)
+- [Partner Programs](https://business.linkedin.com/marketing-solutions/partner-program)
+
+### Community Resources
+- [LinkedIn Developer Forums](https://developer.linkedin.com/forums)
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/linkedin-api)
+- [GitHub Examples](https://github.com/linkedin)
+
+### Support Channels
+- **Developer Support**: Submit tickets through Developer Portal
+- **Partner Support**: Contact your LinkedIn representative
+- **Community Support**: LinkedIn Developer Forums
+
+---
+
+## 🚀 Next Steps
+
+1. **Review Requirements**: Determine which business lines you need
+2. **Apply for Access**: Submit partner program applications if required
+3. **Set Up Authentication**: Configure OAuth 2.0 flow
+4. **Implement Core Integration**: Start with basic API calls
+5. **Add Error Handling**: Implement comprehensive error management
+6. **Set Up Monitoring**: Add logging and alerting
+7. **Test Thoroughly**: Use sandbox environment for testing
+8. **Go Live**: Deploy to production with monitoring
+
+Remember: Start small, test thoroughly, and scale gradually. LinkedIn APIs are powerful but require careful implementation to ensure compliance and optimal performance.

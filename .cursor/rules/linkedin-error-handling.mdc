@@ -1,0 +1,460 @@
+---
+alwaysApply: false
+description: LinkedIn API error handling, compliance, and best practices
+globs: *.ts,*.tsx,*.js,*.jsx
+---
+
+# LinkedIn API Error Handling & Compliance
+
+## HTTP Status Codes & Error Responses
+
+### Common Error Codes
+
+```typescript
+interface LinkedInApiError {
+  status: number
+  code: string
+  message: string
+  details?: any
+}
+
+// Error code mappings
+const LINKEDIN_ERROR_CODES = {
+  // Authentication errors
+  401: 'INVALID_OR_EXPIRED_TOKEN',
+  403: 'INSUFFICIENT_PERMISSIONS',
+
+  // Rate limiting
+  429: 'TOO_MANY_REQUESTS',
+
+  // Client errors
+  400: 'BAD_REQUEST',
+  404: 'NOT_FOUND',
+  409: 'CONFLICT',
+
+  // Server errors
+  500: 'INTERNAL_SERVER_ERROR',
+  502: 'BAD_GATEWAY',
+  503: 'SERVICE_UNAVAILABLE'
+} as const
+```
+
+### Error Response Structure
+```typescript
+interface LinkedInErrorResponse {
+  serviceErrorCode: number
+  message: string
+  status: number
+  code?: string
+  details?: {
+    input?: any
+    output?: any
+    cause?: string
+  }
+}
+
+// Example error response:
+// {
+//   "serviceErrorCode": 100,
+//   "message": "Invalid access token",
+//   "status": 401
+// }
+```
+
+## Error Handling Patterns
+
+### Comprehensive Error Handler
+```typescript
+class LinkedInApiErrorHandler {
+  static async handleApiResponse<T>(response: Response): Promise<T> {
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new LinkedInApiException(response.status, errorData)
+    }
+
+    return response.json()
+  }
+
+  static isRetryableError(error: LinkedInApiException): boolean {
+    const retryableStatuses = [429, 500, 502, 503, 504]
+    return retryableStatuses.includes(error.status)
+  }
+
+  static getRetryDelay(error: LinkedInApiException): number {
+    if (error.status === 429) {
+      // Check for Retry-After header
+      const retryAfter = error.response?.headers?.get('Retry-After')
+      return retryAfter ? parseInt(retryAfter) * 1000 : 60000 // 1 minute default
+    }
+
+    // Exponential backoff for server errors
+    return Math.min(1000 * Math.pow(2, error.retryCount || 0), 30000)
+  }
+}
+
+class LinkedInApiException extends Error {
+  constructor(
+    public status: number,
+    public response: any,
+    public retryCount: number = 0
+  ) {
+    super(response?.message || `LinkedIn API error: ${status}`)
+    this.name = 'LinkedInApiException'
+  }
+}
+```
+
+### Retry Logic with Exponential Backoff
+```typescript
+class RetryableLinkedInClient {
+  private maxRetries = 3
+
+  async makeRequest<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<T> {
+    let lastError: LinkedInApiException | null = null
+
+    for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
+      try {
+        const response = await fetch(`https://api.linkedin.com/v2/${endpoint}`, {
+          ...options,
+          headers: {
+            ...options.headers,
+            'Authorization': `Bearer ${this.accessToken}`,
+            'X-Restli-Protocol-Version': '2.0.0'
+          }
+        })
+
+        return await LinkedInApiErrorHandler.handleApiResponse<T>(response)
+      } catch (error) {
+        if (error instanceof LinkedInApiException) {
+          lastError = error
+
+          if (!LinkedInApiErrorHandler.isRetryableError(error) || attempt === this.maxRetries) {
+            throw error
+          }
+
+          const delay = LinkedInApiErrorHandler.getRetryDelay(error)
+          await new Promise(resolve => setTimeout(resolve, delay))
+        } else {
+          throw error
+        }
+      }
+    }
+
+    throw lastError
+  }
+}
+```
+
+## Rate Limiting Best Practices
+
+### Rate Limit Headers
+LinkedIn provides rate limit information in response headers:
+
+```typescript
+interface RateLimitHeaders {
+  'X-Restli-Protocol-Version': string
+  'X-RateLimit-Limit': string        // Total requests allowed
+  'X-RateLimit-Remaining': string    // Remaining requests
+  'X-RateLimit-Reset': string        // Unix timestamp when limit resets
+  'Retry-After'?: string            // Seconds to wait (when rate limited)
+}
+
+// Extract rate limit information
+const extractRateLimitInfo = (headers: Headers): RateLimitInfo | null => {
+  const limit = headers.get('X-RateLimit-Limit')
+  const remaining = headers.get('X-RateLimit-Remaining')
+  const reset = headers.get('X-RateLimit-Reset')
+
+  if (!limit || !remaining || !reset) {
+    return null
+  }
+
+  return {
+    limit: parseInt(limit),
+    remaining: parseInt(remaining),
+    reset: parseInt(reset) * 1000, // Convert to milliseconds
+    resetDate: new Date(parseInt(reset) * 1000)
+  }
+}
+```
+
+### Rate Limit Management
+```typescript
+class RateLimitManager {
+  private requestQueue: Array<() => Promise<any>> = []
+  private isProcessing = false
+  private rateLimitInfo: RateLimitInfo | null = null
+
+  async enqueueRequest<T>(request: () => Promise<T>): Promise<T> {
+    return new Promise((resolve, reject) => {
+      this.requestQueue.push(async () => {
+        try {
+          const result = await request()
+          resolve(result)
+        } catch (error) {
+          reject(error)
+        }
+      })
+
+      this.processQueue()
+    })
+  }
+
+  private async processQueue() {
+    if (this.isProcessing || this.requestQueue.length === 0) {
+      return
+    }
+
+    this.isProcessing = true
+
+    while (this.requestQueue.length > 0) {
+      if (this.shouldWaitForRateLimit()) {
+        await this.waitForRateLimitReset()
+      }
+
+      const request = this.requestQueue.shift()
+      if (request) {
+        await request()
+      }
+    }
+
+    this.isProcessing = false
+  }
+
+  private shouldWaitForRateLimit(): boolean {
+    if (!this.rateLimitInfo) return false
+    return this.rateLimitInfo.remaining <= 10 // Keep some buffer
+  }
+
+  private async waitForRateLimitReset(): Promise<void> {
+    if (!this.rateLimitInfo) return
+
+    const now = Date.now()
+    const waitTime = this.rateLimitInfo.reset - now
+
+    if (waitTime > 0) {
+      console.log(`Rate limited. Waiting ${waitTime}ms until reset.`)
+      await new Promise(resolve => setTimeout(resolve, waitTime))
+    }
+  }
+
+  updateRateLimitInfo(headers: Headers) {
+    const info = extractRateLimitInfo(headers)
+    if (info) {
+      this.rateLimitInfo = info
+    }
+  }
+}
+```
+
+## Compliance & Data Protection
+
+### Data Retention & Deletion
+```typescript
+class ComplianceManager {
+  // GDPR-compliant data deletion
+  async deleteUserData(userId: string): Promise<void> {
+    // Delete all user data from your systems
+    await Promise.all([
+      this.deleteUserProfile(userId),
+      this.deleteUserPosts(userId),
+      this.deleteUserConnections(userId),
+      this.deleteAnalyticsData(userId)
+    ])
+
+    // Log deletion for compliance
+    await this.logDeletion(userId, 'GDPR_REQUEST')
+  }
+
+  // CCPA compliance - right to know
+  async exportUserData(userId: string): Promise<UserDataExport> {
+    const userData = await this.collectAllUserData(userId)
+
+    return {
+      userId,
+      exportDate: new Date(),
+      data: userData,
+      retention: '30_days' // As per LinkedIn policy
+    }
+  }
+
+  // Audit logging
+  private async logDeletion(userId: string, reason: string): Promise<void> {
+    await this.auditLog({
+      action: 'DATA_DELETION',
+      userId,
+      reason,
+      timestamp: new Date(),
+      compliance: 'GDPR'
+    })
+  }
+}
+```
+
+### Content Moderation
+```typescript
+class ContentModerator {
+  // Check content before posting
+  async validateContent(content: string): Promise<ValidationResult> {
+    const issues: ContentIssue[] = []
+
+    // Check for prohibited content
+    if (this.containsSpam(content)) {
+      issues.push({ type: 'SPAM', severity: 'HIGH' })
+    }
+
+    if (this.containsInappropriateLanguage(content)) {
+      issues.push({ type: 'INAPPROPRIATE', severity: 'HIGH' })
+    }
+
+    if (this.containsPersonalData(content)) {
+      issues.push({ type: 'PII', severity: 'CRITICAL' })
+    }
+
+    return {
+      isValid: issues.length === 0,
+      issues,
+      recommendations: this.generateRecommendations(issues)
+    }
+  }
+
+  // LinkedIn content policies
+  private containsSpam(content: string): boolean {
+    const spamPatterns = [
+      /buy now/i,
+      /limited time/i,
+      /urgent/i,
+      /click here/i
+    ]
+    return spamPatterns.some(pattern => pattern.test(content))
+  }
+
+  private containsInappropriateLanguage(content: string): boolean {
+    // Implement appropriate language detection
+    return false // Placeholder
+  }
+
+  private containsPersonalData(content: string): boolean {
+    // Check for emails, phone numbers, addresses
+    const personalDataPatterns = [
+      /\b[\w\.-]+@[\w\.-]+\.\w+\b/, // Email
+      /\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/, // Phone
+      /\b\d{5}(-\d{4})?\b/ // ZIP code
+    ]
+    return personalDataPatterns.some(pattern => pattern.test(content))
+  }
+}
+```
+
+## Monitoring & Alerting
+
+### API Health Monitoring
+```typescript
+class LinkedInApiMonitor {
+  private healthMetrics = {
+    totalRequests: 0,
+    successfulRequests: 0,
+    failedRequests: 0,
+    rateLimitHits: 0,
+    averageResponseTime: 0
+  }
+
+  async monitorRequest<T>(
+    operation: string,
+    request: () => Promise<T>
+  ): Promise<T> {
+    const startTime = Date.now()
+
+    try {
+      this.healthMetrics.totalRequests++
+      const result = await request()
+      this.healthMetrics.successfulRequests++
+
+      const responseTime = Date.now() - startTime
+      this.updateAverageResponseTime(responseTime)
+
+      return result
+    } catch (error) {
+      this.healthMetrics.failedRequests++
+
+      if (error instanceof LinkedInApiException && error.status === 429) {
+        this.healthMetrics.rateLimitHits++
+      }
+
+      throw error
+    }
+  }
+
+  private updateAverageResponseTime(responseTime: number) {
+    const alpha = 0.1 // Smoothing factor
+    this.healthMetrics.averageResponseTime =
+      (1 - alpha) * this.healthMetrics.averageResponseTime + alpha * responseTime
+  }
+
+  getHealthReport(): HealthReport {
+    return {
+      uptime: this.calculateUptime(),
+      errorRate: this.healthMetrics.failedRequests / this.healthMetrics.totalRequests,
+      rateLimitRate: this.healthMetrics.rateLimitHits / this.healthMetrics.totalRequests,
+      averageResponseTime: this.healthMetrics.averageResponseTime,
+      status: this.determineHealthStatus()
+    }
+  }
+
+  private calculateUptime(): number {
+    // Implementation depends on your monitoring setup
+    return 0.99 // Example: 99% uptime
+  }
+
+  private determineHealthStatus(): 'HEALTHY' | 'DEGRADED' | 'UNHEALTHY' {
+    const errorRate = this.healthMetrics.failedRequests / this.healthMetrics.totalRequests
+
+    if (errorRate > 0.5) return 'UNHEALTHY'
+    if (errorRate > 0.1) return 'DEGRADED'
+    return 'HEALTHY'
+  }
+}
+```
+
+## API Versioning & Breaking Changes
+
+### Version Header Management
+```typescript
+class ApiVersionManager {
+  private currentVersion = '2.0.0'
+  private supportedVersions = ['1.0.0', '2.0.0']
+
+  getVersionHeader(): string {
+    return this.currentVersion
+  }
+
+  validateVersion(version: string): boolean {
+    return this.supportedVersions.includes(version)
+  }
+
+  migrateData(oldVersion: string, newVersion: string, data: any): any {
+    // Implement data migration logic
+    if (oldVersion === '1.0.0' && newVersion === '2.0.0') {
+      return this.migrateV1ToV2(data)
+    }
+    return data
+  }
+
+  private migrateV1ToV2(data: any): any {
+    // Example migration logic
+    return {
+      ...data,
+      version: '2.0.0',
+      migratedAt: new Date().toISOString()
+    }
+  }
+}
+```
+
+## References
+- [LinkedIn API Error Handling](https://learn.microsoft.com/en-us/linkedin/shared/api-guide/error-handling)
+- [Rate Limiting](https://learn.microsoft.com/en-us/linkedin/shared/api-guide/rate-limiting)
+- [Compliance Guidelines](https://learn.microsoft.com/en-us/linkedin/compliance/overview)
