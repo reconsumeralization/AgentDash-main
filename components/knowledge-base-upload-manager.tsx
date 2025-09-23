@@ -518,7 +518,7 @@ export function KnowledgeBaseUploadManager({
   }, [uploadFiles, selectedChatHistory, selectedProfileData, selectedFileManagerItems, knowledgeBase.id, onUploadComplete, onUploadProgress])
 
   const getFileIcon = (file: File) => {
-    if (file.type.startsWith('image/')) return <Image className="h-4 w-4" />
+    if (file.type.startsWith('image/')) return <Image className="h-4 w-4" alt="" />
     if (file.type.startsWith('video/')) return <Video className="h-4 w-4" />
     if (file.type.startsWith('audio/')) return <Music className="h-4 w-4" />
     if (file.type.includes('pdf')) return <FileText className="h-4 w-4" />

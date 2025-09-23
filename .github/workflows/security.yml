@@ -1,0 +1,273 @@
+name: Security Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run security checks daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  NODE_VERSION: '18'
+  PNPM_VERSION: '8'
+
+jobs:
+  # Dependency Security Audit
+  dependency-audit:
+    name: Dependency Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run npm audit
+        run: pnpm audit --audit-level moderate
+
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --file=package.json
+
+  # Code Security Analysis
+  code-security:
+    name: Code Security Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint security rules
+        run: pnpm lint --ext .ts,.tsx --rule 'no-eval: error' --rule 'no-implied-eval: error'
+
+      - name: Run Semgrep security scan
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/secrets
+            p/owasp-top-ten
+            p/javascript
+            p/typescript
+            p/react
+        env:
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+
+  # Container Security Scan
+  container-security:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t agentdash:security-scan .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'agentdash:security-scan'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # Secrets Detection
+  secrets-detection:
+    name: Secrets Detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run TruffleHog OSS
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # License Compliance
+  license-compliance:
+    name: License Compliance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run license checker
+        run: |
+          npx license-checker --summary
+          npx license-checker --excludePrivatePackages --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;Unlicense'
+
+  # SAST (Static Application Security Testing)
+  sast:
+    name: Static Application Security Testing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: javascript
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+  # Infrastructure Security
+  infrastructure-security:
+    name: Infrastructure Security
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          framework: dockerfile
+          output_format: sarif
+          output_file_path: checkov-results.sarif
+
+      - name: Upload Checkov results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: checkov-results.sarif
+
+  # Security Notifications
+  security-notifications:
+    name: Security Notifications
+    runs-on: ubuntu-latest
+    needs: [dependency-audit, code-security, container-security, secrets-detection, license-compliance, sast]
+    if: always()
+    steps:
+      - name: Check security results
+        id: security_check
+        run: |
+          if [[ "${{ needs.dependency-audit.result }}" == "failure" || 
+                "${{ needs.code-security.result }}" == "failure" || 
+                "${{ needs.container-security.result }}" == "failure" || 
+                "${{ needs.secrets-detection.result }}" == "failure" || 
+                "${{ needs.license-compliance.result }}" == "failure" || 
+                "${{ needs.sast.result }}" == "failure" ]]; then
+            echo "security_issues=true" >> $GITHUB_OUTPUT
+          else
+            echo "security_issues=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Notify security team
+        if: steps.security_check.outputs.security_issues == 'true'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          channel: '#security'
+          text: |
+            🚨 Security Issues Detected in AgentDash
+            
+            Please review the security scan results:
+            - Dependency Audit: ${{ needs.dependency-audit.result }}
+            - Code Security: ${{ needs.code-security.result }}
+            - Container Security: ${{ needs.container-security.result }}
+            - Secrets Detection: ${{ needs.secrets-detection.result }}
+            - License Compliance: ${{ needs.license-compliance.result }}
+            - SAST: ${{ needs.sast.result }}
+            
+            Check the [Security tab](https://github.com/${{ github.repository }}/security) for details.
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Create security issue
+        if: steps.security_check.outputs.security_issues == 'true'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const title = `Security Scan Failed - ${new Date().toISOString().split('T')[0]}`;
+            const body = `## Security Scan Results
+            
+            The automated security scan has detected potential security issues:
+            
+            - **Dependency Audit**: ${{ needs.dependency-audit.result }}
+            - **Code Security**: ${{ needs.code-security.result }}
+            - **Container Security**: ${{ needs.container-security.result }}
+            - **Secrets Detection**: ${{ needs.secrets-detection.result }}
+            - **License Compliance**: ${{ needs.license-compliance.result }}
+            - **SAST**: ${{ needs.sast.result }}
+            
+            Please review the [Security tab](https://github.com/${{ github.repository }}/security) and address any critical issues.
+            
+            ## Next Steps
+            
+            1. Review the security scan results
+            2. Address critical and high-severity issues
+            3. Update dependencies if needed
+            4. Close this issue once resolved
+            
+            ---
+            *This issue was automatically created by the security pipeline.*`;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['security', 'automated']
+            });

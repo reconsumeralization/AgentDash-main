@@ -128,8 +128,9 @@ export function NotificationProvider({
 
   // Cleanup timeouts on unmount
   React.useEffect(() => {
+    const currentTimeouts = timeoutsRef.current; // Capture the current value
     return () => {
-      timeoutsRef.current.forEach(timeout => clearTimeout(timeout))
+      currentTimeouts.forEach(timeout => clearTimeout(timeout))
     }
   }, [])
 

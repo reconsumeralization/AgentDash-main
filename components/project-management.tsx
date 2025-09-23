@@ -281,7 +281,7 @@ export function ProjectManagement({ userId }: ProjectManagementProps) {
   const getFileTypeIcon = (fileType: string) => {
     switch (fileType.toLowerCase()) {
       case 'image':
-        return <Image className="h-4 w-4" />
+        return <Image className="h-4 w-4" alt="" />
       case 'video':
         return <Video className="h-4 w-4" />
       case 'audio':
