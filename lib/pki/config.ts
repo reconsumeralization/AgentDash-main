@@ -1,7 +1,7 @@
 // PKI Configuration Management
 // Secure configuration for PKI automation module
 
-import { PKIConfig, SecurityPolicy } from './types';
+import { PKIConfig, SecurityPolicy, TLSConfig } from './types';
 
 // Default PKI configuration
 export const defaultPKIConfig: PKIConfig = {
@@ -20,6 +20,29 @@ export const defaultPKIConfig: PKIConfig = {
     requireHSM: process.env.PKI_REQUIRE_HSM === 'true',
     keyProtection: (process.env.PKI_KEY_PROTECTION as 'software' | 'hardware') || 'software',
     encryptionKey: process.env.PKI_ENCRYPTION_KEY,
+  },
+  tls: {
+    minVersion: (process.env.TLS_MIN_VERSION as 'TLSv1.2' | 'TLSv1.3') || 'TLSv1.3',
+    ciphers: process.env.TLS_CIPHERS || 'TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256',
+    enableForwardSecrecy: process.env.TLS_ENABLE_FORWARD_SECRECY !== 'false',
+    enableOcspStapling: process.env.TLS_ENABLE_OCSP_STAPLING !== 'false',
+    hstsMaxAge: parseInt(process.env.TLS_HSTS_MAX_AGE || '31536000'), // 1 year
+    enableHstsPreload: process.env.TLS_ENABLE_HSTS_PRELOAD === 'true',
+    enableMtls: process.env.TLS_ENABLE_MTLS === 'true',
+    mtlsCaCert: process.env.TLS_MTLS_CA_CERT_PEM,
+    enableCertificateTransparency: process.env.TLS_ENABLE_CT === 'true',
+    enableExpectCT: process.env.TLS_ENABLE_EXPECT_CT === 'true',
+    expectCTMaxAge: parseInt(process.env.TLS_EXPECT_CT_MAX_AGE || '604800'), // 7 days
+    expectCTEnforce: process.env.TLS_EXPECT_CT_ENFORCE === 'true',
+    expectCTReportUri: process.env.TLS_EXPECT_CT_REPORT_URI,
+    enableTlsMonitoring: process.env.TLS_ENABLE_MONITORING !== 'false',
+    vulnerabilityScanInterval: parseInt(process.env.TLS_VULNERABILITY_SCAN_INTERVAL || '86400'), // 24 hours
+    allowedProtocols: (process.env.TLS_ALLOWED_PROTOCOLS || 'TLSv1.2,TLSv1.3').split(','),
+    honorCipherOrder: process.env.TLS_HONOR_CIPHER_ORDER !== 'false',
+    secureProtocol: process.env.TLS_SECURE_PROTOCOL || 'TLSv1_3_method',
+    rejectUnauthorized: process.env.TLS_REJECT_UNAUTHORIZED !== 'false',
+    requestCert: process.env.TLS_REQUEST_CERT === 'true',
+    checkServerIdentity: process.env.TLS_CHECK_SERVER_IDENTITY !== 'false',
   },
 };
 

@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "lint:fix": "next lint --fix",
+    "lint:fix": "node scripts/lint-and-fix.js --all",
     "type-check": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -53,7 +53,34 @@
     "pki:test": "jest --testPathPattern=pki",
     "pki:test:coverage": "jest --testPathPattern=pki --coverage",
     "demo:pki": "node scripts/pki-demo.js",
-    "demo:pki:test": "npm run dev & sleep 5 && npm run demo:pki"
+    "demo:pki:test": "npm run dev & sleep 5 && npm run demo:pki",
+    "sweep": "node bin/sweep-cli.js",
+    "sweep:scan": "node bin/sweep-cli.js scan",
+    "sweep:security": "node bin/sweep-cli.js scan --type security",
+    "sweep:quality": "node bin/sweep-cli.js scan --type quality",
+    "sweep:performance": "node bin/sweep-cli.js scan --type performance",
+    "sweep:fix": "node bin/sweep-cli.js fix",
+    "sweep:monitor": "node bin/sweep-cli.js monitor",
+    "sweep:report": "node bin/sweep-cli.js report",
+    "autotest": "node bin/autotester.js",
+    "autotest:all": "node bin/autotester.js --all",
+    "autotest:fix": "node bin/autotester.js --fix",
+    "autotest:lint": "node bin/autotester.js --lint",
+    "autotest:api": "node bin/autotester.js --api",
+    "autotest:gui": "node bin/autotester.js --gui",
+    "autotest:watch": "node bin/autotester.js --watch",
+    "autotest:run": "node scripts/run-autotests.js",
+    "autotest:pipeline": "node scripts/run-autotester.js --all",
+    "autotest:self-loop": "node scripts/run-autotester.js --self-loop",
+    "autotest:parallel": "node scripts/run-autotester.js --parallel --api --gui",
+    "lint:watch": "node scripts/lint-and-fix.js --watch",
+    "self-fix": "node scripts/self-fix-loop.js",
+    "self-fix:watch": "node scripts/self-fix-loop.js --watch",
+    "autotest:simple": "node scripts/simple-autotester.js --all",
+    "autotest:simple:loop": "node scripts/simple-autotester.js --self-loop",
+    "tls:quick": "node simple-server.js",
+    "tls:start": "node server.js",
+    "tls:setup": "node scripts/quick-start.js"
   },
   "dependencies": {
     "next": "^14.0.0",
@@ -92,7 +119,9 @@
     "nodemailer": "^6.9.0",
     "cron": "^3.1.0",
     "helmet": "^7.1.0",
+    "express": "^4.18.0",
     "express-rate-limit": "^7.1.0",
+    "ocsp": "^1.2.0",
     "jsonwebtoken": "^9.0.0",
     "bcryptjs": "^2.4.3",
     "multer": "^1.4.5-lts.1",
@@ -103,6 +132,12 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "commander": "^11.0.0",
+    "js-yaml": "^4.1.0",
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1",
+    "inquirer": "^8.2.6",
+    "chokidar": "^3.5.3",
     "@types/node": "^20.8.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
@@ -112,7 +147,7 @@
     "@types/bcryptjs": "^2.4.0",
     "@types/multer": "^1.4.0",
     "@types/pdf-parse": "^1.1.0",
-    "@types/csv-parser": "^1.2.0",
+    "@types/express": "^4.17.0",
     "typescript": "^5.2.0",
     "tailwindcss": "^3.3.0",
     "postcss": "^8.4.0",
@@ -135,14 +170,10 @@
     "husky": "^8.0.0",
     "lint-staged": "^15.0.0",
     "snyk": "^1.1240.0",
-    "semgrep": "^1.45.0",
-    "trufflehog": "^3.63.0",
     "license-checker": "^25.0.0",
-    "checkov": "^2.5.0",
     "supertest": "^6.3.0",
     "@types/supertest": "^2.0.0",
-    "nock": "^13.4.0",
-    "@types/nock": "^13.3.0"
+    "nock": "^13.4.0"
   },
   "bin": {
     "pki-automate": "./bin/pki-automate.js"
@@ -184,7 +215,9 @@
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "jsdom",
-    "setupFilesAfterEnv": ["<rootDir>/tests/setup.ts"],
+    "setupFilesAfterEnv": [
+      "<rootDir>/tests/setup.ts"
+    ],
     "moduleNameMapping": {
       "^@/(.*)$": "<rootDir>/$1"
     },

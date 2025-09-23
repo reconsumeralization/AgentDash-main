@@ -1,14 +1,25 @@
-// No-op middleware - authentication disabled for development
-export default function middleware() {
-  // No authentication - allow all requests through
-  // This allows the DefConect platform to run without Clerk authentication
+/**
+ * Next.js Middleware for TLS Security
+ * Handles HTTPS redirects and security headers
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { tlsMiddleware } from './lib/pki/tlsMiddleware';
+
+export function middleware(request: NextRequest) {
+  // Apply TLS security middleware
+  return tlsMiddleware(request);
 }
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
-    "/((?!_next|[^?]*\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    // Always run for API routes
-    "/(api|trpc)(.*)",
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 };

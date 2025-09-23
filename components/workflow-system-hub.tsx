@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui"
 import { Button } from "@/components/ui"
 import { Badge } from "@/components/ui"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui"
-import { GitBranch, Brain, FileText, Bot, Zap, Workflow, Sparkles, TrendingUp, Clock, CheckCircle } from "lucide-react"
+import { GitBranch, Brain, FileText, Bot, Zap, Workflow, Sparkles, TrendingUp, Clock, CheckCircle, Shield } from "lucide-react"
 
 interface WorkflowSystemHubProps {
   onOpenWorkflowBuilder: () => void
@@ -13,6 +13,7 @@ interface WorkflowSystemHubProps {
   onOpenAPIGenerator: () => void
   onOpenAgentConverter: () => void
   onOpenAIGateway: () => void
+  onOpenVulnerabilityDashboard?: () => void
 }
 
 export function WorkflowSystemHub({
@@ -21,6 +22,7 @@ export function WorkflowSystemHub({
   onOpenAPIGenerator,
   onOpenAgentConverter,
   onOpenAIGateway,
+  onOpenVulnerabilityDashboard,
 }: WorkflowSystemHubProps) {
   const [activeTab, setActiveTab] = useState("overview")
 
@@ -94,6 +96,13 @@ export function WorkflowSystemHub({
       color: "text-yellow-400 bg-yellow-500/20",
       action: onOpenAIGateway,
     },
+    ...(onOpenVulnerabilityDashboard ? [{
+      title: "Vulnerability Dashboard",
+      description: "Sophisticated vulnerability prioritization and management",
+      iconName: "Shield",
+      color: "text-red-400 bg-red-500/20",
+      action: onOpenVulnerabilityDashboard,
+    }] : []),
   ]
 
   // Function to get action icon component by name
@@ -104,6 +113,7 @@ export function WorkflowSystemHub({
       case "FileText": return FileText;
       case "Bot": return Bot;
       case "Zap": return Zap;
+      case "Shield": return Shield;
       default: return GitBranch;
     }
   }

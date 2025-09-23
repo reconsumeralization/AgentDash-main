@@ -80,6 +80,31 @@ export interface PKIConfig {
     keyProtection?: 'software' | 'hardware';
     encryptionKey?: string;
   };
+  tls?: TLSConfig;
+}
+
+export interface TLSConfig {
+  minVersion?: 'TLSv1.2' | 'TLSv1.3';
+  ciphers?: string;
+  enableForwardSecrecy?: boolean;
+  enableOcspStapling?: boolean;
+  hstsMaxAge?: number;
+  enableHstsPreload?: boolean;
+  enableMtls?: boolean;
+  mtlsCaCert?: string;
+  enableCertificateTransparency?: boolean;
+  enableExpectCT?: boolean;
+  expectCTMaxAge?: number;
+  expectCTEnforce?: boolean;
+  expectCTReportUri?: string;
+  enableTlsMonitoring?: boolean;
+  vulnerabilityScanInterval?: number;
+  allowedProtocols?: string[];
+  honorCipherOrder?: boolean;
+  secureProtocol?: string;
+  rejectUnauthorized?: boolean;
+  requestCert?: boolean;
+  checkServerIdentity?: boolean;
 }
 
 export interface CertStatus {
@@ -176,4 +201,50 @@ export class ValidationError extends PKIError {
     super(message, 'VALIDATION_ERROR', details);
     this.name = 'ValidationError';
   }
+}
+
+export class TLSError extends PKIError {
+  constructor(message: string, details?: any) {
+    super(message, 'TLS_ERROR', details);
+    this.name = 'TLSError';
+  }
+}
+
+export class OCSPError extends PKIError {
+  constructor(message: string, details?: any) {
+    super(message, 'OCSP_ERROR', details);
+    this.name = 'OCSPError';
+  }
+}
+
+// TLS-specific types
+export interface TLSServerOptions {
+  key: string;
+  cert: string;
+  ca?: string[];
+  minVersion?: string;
+  ciphers?: string;
+  honorCipherOrder?: boolean;
+  requestCert?: boolean;
+  rejectUnauthorized?: boolean;
+  getOCSPResponse?: (cert: Buffer, issuer: Buffer, callback: (err: Error | null, response?: Buffer) => void) => void;
+}
+
+export interface TLSMonitoringMetrics {
+  tlsVersion: string;
+  cipherSuite: string;
+  ocspStapling: boolean;
+  hstsEnabled: boolean;
+  certificateTransparency: boolean;
+  lastScan: Date;
+  vulnerabilities: string[];
+  complianceScore: number;
+}
+
+export interface OCSPResponse {
+  status: 'good' | 'revoked' | 'unknown';
+  thisUpdate: Date;
+  nextUpdate?: Date;
+  revocationTime?: Date;
+  revocationReason?: string;
 }

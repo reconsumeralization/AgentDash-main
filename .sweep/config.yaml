@@ -1,0 +1,313 @@
+# Sweep Agent Configuration
+# Automated code review and improvement system
+
+# Basic configuration
+project_name: "AgentDash"
+repository: "reconsumeralization/agentdash-dashboard"
+description: "AI-powered dashboard with PKI automation and LinkedIn integration"
+
+# Code analysis settings
+code_analysis:
+  # Languages to analyze
+  languages:
+    - typescript
+    - javascript
+    - python
+    - yaml
+    - json
+    - markdown
+  
+  # File patterns to include/exclude
+  include_patterns:
+    - "**/*.ts"
+    - "**/*.tsx"
+    - "**/*.js"
+    - "**/*.jsx"
+    - "**/*.py"
+    - "**/*.yaml"
+    - "**/*.yml"
+    - "**/*.json"
+    - "**/*.md"
+  
+  exclude_patterns:
+    - "node_modules/**"
+    - ".next/**"
+    - "dist/**"
+    - "build/**"
+    - "coverage/**"
+    - ".git/**"
+    - "*.log"
+    - "*.tmp"
+
+# Security scanning
+security:
+  enabled: true
+  scan_patterns:
+    - "**/*.ts"
+    - "**/*.js"
+    - "**/*.py"
+    - "**/*.yaml"
+    - "**/*.json"
+  
+  # Security rules
+  rules:
+    - name: "hardcoded-secrets"
+      severity: "critical"
+      pattern: "(password|secret|key|token)\\s*[:=]\\s*['\"][^'\"]+['\"]"
+    
+    - name: "sql-injection"
+      severity: "high"
+      pattern: "SELECT\\s+.*\\s+FROM\\s+.*\\+.*"
+    
+    - name: "xss-vulnerability"
+      severity: "high"
+      pattern: "dangerouslySetInnerHTML"
+    
+    - name: "unsafe-eval"
+      severity: "medium"
+      pattern: "eval\\s*\\("
+
+# Code quality rules
+quality:
+  enabled: true
+  
+  # TypeScript/JavaScript rules
+  typescript:
+    - name: "no-any-type"
+      severity: "warning"
+      pattern: ":\\s*any\\b"
+    
+    - name: "console-statements"
+      severity: "warning"
+      pattern: "console\\.(log|warn|error|debug)"
+    
+    - name: "unused-imports"
+      severity: "info"
+      check: "eslint"
+    
+    - name: "missing-return-types"
+      severity: "warning"
+      pattern: "function\\s+\\w+\\s*\\([^)]*\\)\\s*\\{[^}]*return"
+  
+  # React-specific rules
+  react:
+    - name: "missing-key-prop"
+      severity: "error"
+      pattern: "<\\w+\\s+[^>]*(?!key\\s*=)"
+    
+    - name: "inline-styles"
+      severity: "warning"
+      pattern: "style\\s*=\\s*\\{\\{[^}]+\\}\\}"
+    
+    - name: "missing-dependencies"
+      severity: "warning"
+      check: "eslint-hooks"
+
+# Performance rules
+performance:
+  enabled: true
+  
+  rules:
+    - name: "large-bundle-imports"
+      severity: "warning"
+      pattern: "import.*from\\s+['\"]lodash['\"]"
+    
+    - name: "inefficient-loops"
+      severity: "warning"
+      pattern: "for\\s*\\([^)]*\\)\\s*\\{[^}]*forEach"
+    
+    - name: "memory-leaks"
+      severity: "high"
+      pattern: "addEventListener.*(?!removeEventListener)"
+
+# Accessibility rules
+accessibility:
+  enabled: true
+  
+  rules:
+    - name: "missing-alt-text"
+      severity: "error"
+      pattern: "<img[^>]*(?!alt\\s*=)"
+    
+    - name: "missing-aria-labels"
+      severity: "warning"
+      pattern: "<(button|input|select)[^>]*(?!aria-label\\s*=)"
+    
+    - name: "color-contrast"
+      severity: "warning"
+      check: "axe-core"
+
+# Documentation rules
+documentation:
+  enabled: true
+  
+  rules:
+    - name: "missing-jsdoc"
+      severity: "info"
+      pattern: "(function|class|interface)\\s+\\w+"
+    
+    - name: "missing-readme"
+      severity: "warning"
+      check: "file-exists"
+      file: "README.md"
+    
+    - name: "missing-api-docs"
+      severity: "info"
+      pattern: "export\\s+(function|class|interface)\\s+\\w+"
+
+# PKI-specific rules
+pki_security:
+  enabled: true
+  
+  rules:
+    - name: "weak-key-sizes"
+      severity: "critical"
+      pattern: "(rsa|ecdsa).*bits\\s*[:=]\\s*(1024|1536)"
+    
+    - name: "hardcoded-certificates"
+      severity: "critical"
+      pattern: "-----BEGIN CERTIFICATE-----"
+    
+    - name: "unsafe-key-generation"
+      severity: "high"
+      pattern: "Math\\.random"
+    
+    - name: "missing-cert-validation"
+      severity: "warning"
+      pattern: "certificate.*(?!validat)"
+
+# LinkedIn API rules
+linkedin_api:
+  enabled: true
+  
+  rules:
+    - name: "hardcoded-tokens"
+      severity: "critical"
+      pattern: "(access_token|client_secret)\\s*[:=]\\s*['\"][^'\"]+['\"]"
+    
+    - name: "missing-error-handling"
+      severity: "warning"
+      pattern: "linkedin.*api.*(?!catch|error)"
+    
+    - name: "rate-limit-missing"
+      severity: "warning"
+      pattern: "fetch.*linkedin.*(?!throttle|rate)"
+
+# Automated fixes
+auto_fix:
+  enabled: true
+  
+  # Safe automatic fixes
+  safe_fixes:
+    - "remove-unused-imports"
+    - "format-code"
+    - "add-missing-semicolons"
+    - "fix-indentation"
+  
+  # Semi-automatic fixes (require review)
+  review_fixes:
+    - "add-error-handling"
+    - "improve-type-annotations"
+    - "optimize-imports"
+    - "add-jsdoc"
+
+# Notification settings
+notifications:
+  enabled: true
+  
+  # Slack integration
+  slack:
+    enabled: false
+    webhook_url: "${SLACK_WEBHOOK_URL}"
+    channel: "#code-reviews"
+  
+  # Email notifications
+  email:
+    enabled: false
+    recipients:
+      - "dev@company.com"
+  
+  # GitHub notifications
+  github:
+    enabled: true
+    create_issues: true
+    create_prs: false
+    comment_on_commits: true
+
+# Scheduling
+schedule:
+  # Run on every push
+  on_push: true
+  
+  # Run on pull requests
+  on_pr: true
+  
+  # Run daily at 2 AM UTC
+  cron: "0 2 * * *"
+  
+  # Run on specific branches
+  branches:
+    - "main"
+    - "develop"
+    - "feature/*"
+
+# Integration settings
+integrations:
+  # ESLint integration
+  eslint:
+    enabled: true
+    config_file: ".eslintrc.json"
+  
+  # Prettier integration
+  prettier:
+    enabled: true
+    config_file: ".prettierrc"
+  
+  # TypeScript integration
+  typescript:
+    enabled: true
+    config_file: "tsconfig.json"
+  
+  # Jest integration
+  jest:
+    enabled: true
+    config_file: "jest.config.js"
+
+# Reporting
+reporting:
+  # Generate reports
+  reports:
+    - type: "html"
+      output: "sweep-reports/"
+      template: "default"
+    
+    - type: "json"
+      output: "sweep-reports/"
+    
+    - type: "markdown"
+      output: "sweep-reports/"
+
+  # Metrics tracking
+  metrics:
+    enabled: true
+    track:
+      - "issues_found"
+      - "issues_fixed"
+      - "code_coverage"
+      - "performance_metrics"
+      - "security_vulnerabilities"
+
+# Thresholds
+thresholds:
+  # Fail the build if critical issues exceed threshold
+  critical_issues: 0
+  high_issues: 5
+  medium_issues: 20
+  low_issues: 50
+  
+  # Code coverage thresholds
+  min_coverage: 80
+  
+  # Performance thresholds
+  max_bundle_size: "5MB"
+  max_response_time: "2s"

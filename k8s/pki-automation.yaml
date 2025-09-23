@@ -1,0 +1,417 @@
+# PKI Automation Kubernetes Manifests
+# Complete deployment configuration for PKI automation in Kubernetes
+
+---
+# Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pki-automation
+  labels:
+    name: pki-automation
+    app.kubernetes.io/name: pki-automation
+    app.kubernetes.io/version: "1.0.0"
+
+---
+# ConfigMap for PKI configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pki-config
+  namespace: pki-automation
+data:
+  PKI_STORAGE_TYPE: "file"
+  PKI_STORAGE_PATH: "/app/certs"
+  PKI_LOG_LEVEL: "info"
+  PKI_KEY_BITS: "2048"
+  PKI_CERT_VALIDITY_DAYS: "90"
+  PKI_AUTO_RENEW_THRESHOLD_DAYS: "30"
+  ACME_CA_URL: "https://acme-v02.api.letsencrypt.org/directory"
+  ACME_STAGING: "false"
+  HSM_PROVIDER: "softhsm"
+  HSM_MODULE_PATH: "/usr/lib/softhsm/libsofthsm2.so"
+  HSM_SLOT: "0"
+
+---
+# Secret for sensitive configuration
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pki-secrets
+  namespace: pki-automation
+type: Opaque
+data:
+  # Base64 encoded values - replace with actual values
+  ADMIN_EMAIL: YWRtaW5AZXhhbXBsZS5jb20=  # admin@example.com
+  HSM_PIN: MTIzNA==  # 1234
+  PKI_ENCRYPTION_KEY: cGtpLWVuY3J5cHRpb24ta2V5  # pki-encryption-key
+  AWS_ACCESS_KEY_ID: ""  # Add if using AWS ACM
+  AWS_SECRET_ACCESS_KEY: ""  # Add if using AWS ACM
+  CUSTOM_CA_API_KEY: ""  # Add if using custom CA
+
+---
+# PersistentVolumeClaim for certificate storage
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pki-storage
+  namespace: pki-automation
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+
+---
+# Service for PKI automation
+apiVersion: v1
+kind: Service
+metadata:
+  name: pki-automation-service
+  namespace: pki-automation
+  labels:
+    app: pki-automation
+spec:
+  selector:
+    app: pki-automation
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  type: ClusterIP
+
+---
+# Deployment for PKI automation
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pki-automation
+  namespace: pki-automation
+  labels:
+    app: pki-automation
+    app.kubernetes.io/name: pki-automation
+    app.kubernetes.io/version: "1.0.0"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pki-automation
+  template:
+    metadata:
+      labels:
+        app: pki-automation
+        app.kubernetes.io/name: pki-automation
+        app.kubernetes.io/version: "1.0.0"
+    spec:
+      serviceAccountName: pki-automation
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+      - name: pki-automation
+        image: yourorg/pki-automation:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+        - containerPort: 9090
+          name: metrics
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PKI_STORAGE_TYPE
+          valueFrom:
+            configMapKeyRef:
+              name: pki-config
+              key: PKI_STORAGE_TYPE
+        - name: PKI_STORAGE_PATH
+          valueFrom:
+            configMapKeyRef:
+              name: pki-config
+              key: PKI_STORAGE_PATH
+        - name: PKI_LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: pki-config
+              key: PKI_LOG_LEVEL
+        - name: ADMIN_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: pki-secrets
+              key: ADMIN_EMAIL
+        - name: HSM_PIN
+          valueFrom:
+            secretKeyRef:
+              name: pki-secrets
+              key: HSM_PIN
+        - name: PKI_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: pki-secrets
+              key: PKI_ENCRYPTION_KEY
+        volumeMounts:
+        - name: pki-storage
+          mountPath: /app/certs
+        - name: logs
+          mountPath: /app/logs
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/pki/health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/pki/health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+      volumes:
+      - name: pki-storage
+        persistentVolumeClaim:
+          claimName: pki-storage
+      - name: logs
+        emptyDir: {}
+      restartPolicy: Always
+
+---
+# ServiceAccount for PKI automation
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pki-automation
+  namespace: pki-automation
+  labels:
+    app: pki-automation
+
+---
+# Role for PKI automation
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: pki-automation
+  name: pki-automation-role
+rules:
+- apiGroups: [""]
+  resources: ["secrets", "configmaps"]
+  verbs: ["get", "list", "watch", "create", "update", "patch"]
+- apiGroups: [""]
+  resources: ["pods", "services"]
+  verbs: ["get", "list", "watch"]
+
+---
+# RoleBinding for PKI automation
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pki-automation-rolebinding
+  namespace: pki-automation
+subjects:
+- kind: ServiceAccount
+  name: pki-automation
+  namespace: pki-automation
+roleRef:
+  kind: Role
+  name: pki-automation-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# CronJob for certificate renewal
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pki-renewal
+  namespace: pki-automation
+  labels:
+    app: pki-renewal
+spec:
+  schedule: "0 2 * * *"  # Run daily at 2 AM
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: pki-renewal
+        spec:
+          serviceAccountName: pki-automation
+          restartPolicy: OnFailure
+          containers:
+          - name: pki-renewal
+            image: yourorg/pki-automation:latest
+            command: ["node", "bin/pki-automate.js", "renew", "--domain", "example.com"]
+            env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PKI_STORAGE_TYPE
+              valueFrom:
+                configMapKeyRef:
+                  name: pki-config
+                  key: PKI_STORAGE_TYPE
+            - name: PKI_STORAGE_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: pki-config
+                  key: PKI_STORAGE_PATH
+            - name: ADMIN_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: pki-secrets
+                  key: ADMIN_EMAIL
+            volumeMounts:
+            - name: pki-storage
+              mountPath: /app/certs
+            resources:
+              requests:
+                memory: "128Mi"
+                cpu: "100m"
+              limits:
+                memory: "256Mi"
+                cpu: "200m"
+          volumes:
+          - name: pki-storage
+            persistentVolumeClaim:
+              claimName: pki-storage
+
+---
+# CronJob for certificate monitoring
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pki-monitoring
+  namespace: pki-automation
+  labels:
+    app: pki-monitoring
+spec:
+  schedule: "*/30 * * * *"  # Run every 30 minutes
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: pki-monitoring
+        spec:
+          serviceAccountName: pki-automation
+          restartPolicy: OnFailure
+          containers:
+          - name: pki-monitoring
+            image: yourorg/pki-automation:latest
+            command: ["node", "bin/pki-automate.js", "monitor"]
+            env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PKI_STORAGE_TYPE
+              valueFrom:
+                configMapKeyRef:
+                  name: pki-config
+                  key: PKI_STORAGE_TYPE
+            - name: PKI_STORAGE_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: pki-config
+                  key: PKI_STORAGE_PATH
+            - name: ADMIN_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: pki-secrets
+                  key: ADMIN_EMAIL
+            volumeMounts:
+            - name: pki-storage
+              mountPath: /app/certs
+            resources:
+              requests:
+                memory: "128Mi"
+                cpu: "100m"
+              limits:
+                memory: "256Mi"
+                cpu: "200m"
+          volumes:
+          - name: pki-storage
+            persistentVolumeClaim:
+              claimName: pki-storage
+
+---
+# Ingress for PKI automation (optional)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pki-automation-ingress
+  namespace: pki-automation
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+  - hosts:
+    - pki-automation.example.com
+    secretName: pki-automation-tls
+  rules:
+  - host: pki-automation.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: pki-automation-service
+            port:
+              number: 3000
+
+---
+# NetworkPolicy for PKI automation
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: pki-automation-netpol
+  namespace: pki-automation
+spec:
+  podSelector:
+    matchLabels:
+      app: pki-automation
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 3000
+    - protocol: TCP
+      port: 9090
+  egress:
+  - {}  # Allow all egress traffic

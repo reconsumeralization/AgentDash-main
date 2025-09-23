@@ -8,6 +8,13 @@ export * from './keyGeneration';
 export * from './certificateGeneration';
 export * from './acmeIntegration';
 
+// TLS/SSL functionality
+export * from './tlsServer';
+export * from './ocspStapling';
+export * from './tlsMiddleware';
+export * from './tlsValidation';
+export * from './tlsMonitoring';
+
 // Configuration
 export { defaultPKIConfig, pkiConfig, getPKIConfig, validatePKIConfig } from './config';
 
@@ -39,6 +46,41 @@ export {
   createACMEClient 
 } from './acmeIntegration';
 
+// TLS/SSL utilities
+export { 
+  SecureTLSServer, 
+  setupTlsServer, 
+  createTLSOptions, 
+  validateTLSConfig 
+} from './tlsServer';
+
+export { 
+  OCSPStaplingService, 
+  createOCSPStaplingService, 
+  validateOCSPResponse, 
+  checkCertificateRevocation 
+} from './ocspStapling';
+
+export { 
+  tlsMiddleware, 
+  addSecurityHeaders, 
+  expressTlsMiddleware, 
+  HSTSPreloadService, 
+  CertificateTransparencyService 
+} from './tlsMiddleware';
+
+export { 
+  TLSValidator, 
+  quickValidateTLS, 
+  getTLSSecurityScore 
+} from './tlsValidation';
+
+export { 
+  TLSMonitor, 
+  createTLSMonitor, 
+  quickTLSHealthCheck 
+} from './tlsMonitoring';
+
 // Type exports
 export type {
   KeyPairOptions,
@@ -49,6 +91,7 @@ export type {
   ACMEOptions,
   ACMECertificate,
   PKIConfig,
+  TLSConfig,
   CertStatus,
   PKIMetrics,
   ValidationResult,
@@ -60,4 +103,9 @@ export type {
   CertificateError,
   ACMEError,
   ValidationError,
+  TLSError,
+  OCSPError,
+  TLSServerOptions,
+  TLSMonitoringMetrics,
+  OCSPResponse,
 } from './types';

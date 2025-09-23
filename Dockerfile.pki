@@ -1,0 +1,116 @@
+# PKI Automation Module Dockerfile
+# Multi-stage build for production-ready PKI automation
+
+# Build stage
+FROM node:20-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    openssl \
+    openssl-dev
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY tsconfig.json ./
+
+# Install dependencies
+RUN npm ci --only=production && npm cache clean --force
+
+# Copy source code
+COPY lib/ ./lib/
+COPY bin/ ./bin/
+
+# Build TypeScript
+RUN npm run build || echo "Build step skipped - using source directly"
+
+# Production stage
+FROM node:20-alpine AS production
+
+# Install runtime dependencies
+RUN apk add --no-cache \
+    openssl \
+    ca-certificates \
+    tzdata \
+    curl \
+    jq
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S pki -u 1001
+
+# Set working directory
+WORKDIR /app
+
+# Copy built application
+COPY --from=builder --chown=pki:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=pki:nodejs /app/lib ./lib
+COPY --from=builder --chown=pki:nodejs /app/bin ./bin
+COPY --chown=pki:nodejs package*.json ./
+
+# Create directories for certificates and logs
+RUN mkdir -p /app/certs /app/logs && \
+    chown -R pki:nodejs /app/certs /app/logs
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PKI_STORAGE_TYPE=file
+ENV PKI_STORAGE_PATH=/app/certs
+ENV PKI_LOG_LEVEL=info
+
+# Expose ports
+EXPOSE 3000 9090
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3000/api/pki/health || exit 1
+
+# Switch to non-root user
+USER pki
+
+# Default command
+CMD ["node", "bin/pki-automate.js", "monitor", "--watch"]
+
+# Development stage
+FROM node:20-alpine AS development
+
+# Install development dependencies
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    openssl \
+    openssl-dev \
+    git \
+    vim
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including dev)
+RUN npm install
+
+# Copy source code
+COPY . .
+
+# Create directories
+RUN mkdir -p /app/certs /app/logs
+
+# Set environment variables
+ENV NODE_ENV=development
+ENV PKI_STORAGE_TYPE=memory
+ENV PKI_LOG_LEVEL=debug
+
+# Expose ports
+EXPOSE 3000 9090
+
+# Default command for development
+CMD ["npm", "run", "dev"]

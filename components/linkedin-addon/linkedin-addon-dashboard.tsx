@@ -138,6 +138,10 @@ export function LinkedInAddonDashboard() {
             <Shield className="w-3 h-3 mr-1" />
             Enterprise Grade
           </Badge>
+          <Button onClick={() => window.location.href = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${process.env.NEXT_PUBLIC_LINKEDIN_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_LINKEDIN_REDIRECT_URI}&scope=r_liteprofile%20r_emailaddress%20w_member_social`}>
+            <LinkedIn className="w-4 h-4 mr-2" />
+            Connect LinkedIn
+          </Button>
           <Button>
             <Settings className="w-4 h-4 mr-2" />
             Settings

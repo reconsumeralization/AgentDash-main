@@ -1,0 +1,75 @@
+{
+  "totalPhases": 11,
+  "successfulPhases": 0,
+  "failedPhases": 11,
+  "totalDuration": 34677,
+  "results": [
+    {
+      "phase": "typescript",
+      "success": false,
+      "output": "npm warn config optional Use `--omit=optional` to exclude optional dependencies, or\nnpm warn config `--include=optional` to include them.\nnpm warn config\nnpm warn config       Default value does install optional deps unless otherwise omitted.\nnode:internal/modules/cjs/loader:1372\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\recon\\Desktop\\AgentDash\\AgentDash-main\\node_modules\\typescript\\bin\\tsc'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1369:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1179:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:322:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:152:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.3.0\r\n",
+      "duration": 9152
+    },
+    {
+      "phase": "eslint",
+      "success": false,
+      "output": "npm warn config optional Use `--omit=optional` to exclude optional dependencies, or\nnpm warn config `--include=optional` to include them.\nnpm warn config\nnpm warn config       Default value does install optional deps unless otherwise omitted.\nnode:internal/modules/cjs/loader:1372\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\recon\\Desktop\\AgentDash\\AgentDash-main\\node_modules\\eslint\\bin\\eslint.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1369:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1179:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:322:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:152:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.3.0\r\n",
+      "duration": 3450
+    },
+    {
+      "phase": "prettier",
+      "success": false,
+      "output": "npm warn config optional Use `--omit=optional` to exclude optional dependencies, or\nnpm warn config `--include=optional` to include them.\nnpm warn config\nnpm warn config       Default value does install optional deps unless otherwise omitted.\nnode:internal/modules/cjs/loader:1372\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\recon\\Desktop\\AgentDash\\AgentDash-main\\node_modules\\prettier\\bin\\prettier.cjs'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1369:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1179:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:322:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:152:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.3.0\r\n",
+      "duration": 2929
+    },
+    {
+      "phase": "eslint-fix",
+      "success": false,
+      "output": "npm warn config optional Use `--omit=optional` to exclude optional dependencies, or\nnpm warn config `--include=optional` to include them.\nnpm warn config\nnpm warn config       Default value does install optional deps unless otherwise omitted.\nnode:internal/modules/cjs/loader:1372\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\recon\\Desktop\\AgentDash\\AgentDash-main\\node_modules\\eslint\\bin\\eslint.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1369:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1179:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:322:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:152:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.3.0\r\n",
+      "duration": 4960
+    },
+    {
+      "phase": "prettier-fix",
+      "success": false,
+      "output": "npm warn config optional Use `--omit=optional` to exclude optional dependencies, or\nnpm warn config `--include=optional` to include them.\nnpm warn config\nnpm warn config       Default value does install optional deps unless otherwise omitted.\nnode:internal/modules/cjs/loader:1372\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\recon\\Desktop\\AgentDash\\AgentDash-main\\node_modules\\prettier\\bin\\prettier.cjs'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1369:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1179:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:322:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:152:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.3.0\r\n",
+      "duration": 2906
+    },
+    {
+      "phase": "eslint",
+      "success": false,
+      "output": "npm warn config optional Use `--omit=optional` to exclude optional dependencies, or\nnpm warn config `--include=optional` to include them.\nnpm warn config\nnpm warn config       Default value does install optional deps unless otherwise omitted.\nnode:internal/modules/cjs/loader:1372\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\recon\\Desktop\\AgentDash\\AgentDash-main\\node_modules\\eslint\\bin\\eslint.js'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1369:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1179:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:322:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:152:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.3.0\r\n",
+      "duration": 2631
+    },
+    {
+      "phase": "prettier",
+      "success": false,
+      "output": "npm warn config optional Use `--omit=optional` to exclude optional dependencies, or\nnpm warn config `--include=optional` to include them.\nnpm warn config\nnpm warn config       Default value does install optional deps unless otherwise omitted.\nnode:internal/modules/cjs/loader:1372\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\recon\\Desktop\\AgentDash\\AgentDash-main\\node_modules\\prettier\\bin\\prettier.cjs'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1369:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1179:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:322:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:152:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.3.0\r\n",
+      "duration": 2359
+    },
+    {
+      "phase": "typescript",
+      "success": false,
+      "output": "npm warn config optional Use `--omit=optional` to exclude optional dependencies, or\nnpm warn config `--include=optional` to include them.\nnpm warn config\nnpm warn config       Default value does install optional deps unless otherwise omitted.\nnode:internal/modules/cjs/loader:1372\r\n  throw err;\r\n  ^\r\n\r\nError: Cannot find module 'C:\\Users\\recon\\Desktop\\AgentDash\\AgentDash-main\\node_modules\\typescript\\bin\\tsc'\r\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1369:15)\r\n    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)\r\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)\r\n    at Module._load (node:internal/modules/cjs/loader:1179:37)\r\n    at TracingChannel.traceSync (node:diagnostics_channel:322:14)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:152:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  code: 'MODULE_NOT_FOUND',\r\n  requireStack: []\r\n}\r\n\r\nNode.js v24.3.0\r\n",
+      "duration": 2394
+    },
+    {
+      "phase": "unit-tests",
+      "success": false,
+      "output": "\n> agentdash@1.0.0 test:unit\n> jest --testPathPattern='\\.test\\.(ts|tsx)$' --testPathIgnorePatterns='integration|e2e'\n\n",
+      "duration": 1041
+    },
+    {
+      "phase": "integration-tests",
+      "success": false,
+      "output": "\n> agentdash@1.0.0 test:integration\n> jest --testPathPattern='integration'\n\n",
+      "duration": 1234
+    },
+    {
+      "phase": "e2e-tests",
+      "success": false,
+      "output": "\n> agentdash@1.0.0 test:e2e\n> playwright test\n\n",
+      "duration": 1242
+    }
+  ],
+  "timestamp": "2025-09-23T06:49:40.856Z"
+}

@@ -31,13 +31,13 @@ interface ApiProviderProps {
 }
 
 export function ApiProvider({ children, config = {} }: ApiProviderProps) {
-  const defaultConfig: ApiConfig = {
+  const memoizedConfig = useMemo(() => ({
     baseUrl: process.env.NEXT_PUBLIC_API_URL || '/api',
     timeout: 30000,
     retries: 3,
     retryDelay: 1000,
     ...config
-  }
+  }), [config])
 
   const [isOnline, setIsOnline] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
@@ -66,7 +66,7 @@ export function ApiProvider({ children, config = {} }: ApiProviderProps) {
     try {
       setIsLoading(true)
       
-      const fullUrl = url.startsWith('http') ? url : `${defaultConfig.baseUrl}${url}`
+      const fullUrl = url.startsWith('http') ? url : `${memoizedConfig.baseUrl}${url}`
       
       const requestOptions: RequestInit = {
         ...options,
@@ -78,7 +78,7 @@ export function ApiProvider({ children, config = {} }: ApiProviderProps) {
 
       // Add timeout
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), defaultConfig.timeout)
+      const timeoutId = setTimeout(() => controller.abort(), memoizedConfig.timeout)
       requestOptions.signal = controller.signal
 
       const response = await fetch(fullUrl, requestOptions)
@@ -96,9 +96,9 @@ export function ApiProvider({ children, config = {} }: ApiProviderProps) {
       perfLogger.error(error as Error)
       
       // Retry logic
-      if (retryCount < defaultConfig.retries && isOnline) {
+      if (retryCount < memoizedConfig.retries && isOnline) {
         await new Promise(resolve => 
-          setTimeout(resolve, defaultConfig.retryDelay * Math.pow(2, retryCount))
+          setTimeout(resolve, memoizedConfig.retryDelay * Math.pow(2, retryCount))
         )
         return makeRequest<T>(url, options, retryCount + 1)
       }
@@ -117,7 +117,7 @@ export function ApiProvider({ children, config = {} }: ApiProviderProps) {
     } finally {
       setIsLoading(false)
     }
-  }, [defaultConfig, isOnline])
+  }, [memoizedConfig, isOnline])
 
   const get = useCallback(<T,>(url: string, options?: RequestInit) => {
     return makeRequest<T>(url, { ...options, method: 'GET' })
@@ -139,7 +139,7 @@ export function ApiProvider({ children, config = {} }: ApiProviderProps) {
     })
   }, [makeRequest])
 
-  const patch = useCallback((url: string, data?: any, options?: RequestInit) => {
+  const patch = useCallback(<T,>(url: string, data?: any, options?: RequestInit) => {
     return makeRequest<T>(url, {
       ...options,
       method: 'PATCH',

@@ -19,6 +19,26 @@ import {
   Loader2,
   RefreshCw
 } from "lucide-react"
+import { useUser } from "@clerk/nextjs" // Import useUser
+import { useApi } from "@/lib/providers/api-provider" // Import useApi
+
+// Define a type for the connection data from the API
+interface Connection {
+  id: string;
+  connection_type: string;
+  aspiration_compatibility: number;
+  relationship_strength: string;
+  shared_aspirations: string[];
+  last_interaction: string; // Assuming ISO string from DB
+  conversation_starters: string[];
+  connected_user: {
+    id: string;
+    name: string;
+    email: string;
+    avatar_url: string;
+    linkedin_profile: any; // Adjust as per actual LinkedIn profile structure
+  };
+}
 
 interface AspirationMatch {
   user: {
@@ -38,10 +58,35 @@ interface AspirationMatch {
 }
 
 export default function NetworkingPage() {
+  const { user } = useUser() // Get the current user from Clerk
+  const { get } = useApi() // Get the API client
+
   const [activeTab, setActiveTab] = useState("overview")
   const [aspirationMatches, setAspirationMatches] = useState<AspirationMatch[]>([])
   const [loadingMatches, setLoadingMatches] = useState(false)
   const [discoverFilter, setDiscoverFilter] = useState<'all' | 'career' | 'skill' | 'project' | 'cause'>('all')
+  const [connections, setConnections] = useState<Connection[]>([]) // State for connections
+  const [loadingConnections, setLoadingConnections] = useState(true) // Loading state for connections
+
+  // Fetch connections from Supabase
+  useEffect(() => {
+    if (!user?.id) return // Ensure user ID is available
+
+    const fetchConnections = async () => {
+      setLoadingConnections(true)
+      try {
+        const response = await get(`/api/connections?userId=${user.id}`)
+        setConnections(response.connections || [])
+      } catch (error) {
+        console.error('Error fetching connections:', error)
+        setConnections([]) // Set to empty on error
+      } finally {
+        setLoadingConnections(false)
+      }
+    }
+
+    fetchConnections()
+  }, [user?.id, get]) // Re-fetch when user ID or API client changes
 
   const profile = {
     name: "Alex Chen",
@@ -164,38 +209,18 @@ export default function NetworkingPage() {
     }
   }, [activeTab, aspirationMatches.length, findAspirationMatches])
 
-  const myNetwork = [
-    {
-      id: "1",
-      name: "Sarah Johnson",
-      title: "VP of AI at ScaleAI",
-      company: "ScaleAI",
-      connectionStrength: "Strong",
-      lastInteraction: "2 days ago",
-      sharedInterests: ["AI Product Management", "Team Scaling", "ML Ops"],
-      avatar: "SJ"
-    },
-    {
-      id: "2",
-      name: "Marcus Rodriguez",
-      title: "CTO at AI Startup",
-      company: "NeuroLink",
-      connectionStrength: "Medium",
-      lastInteraction: "1 week ago",
-      sharedInterests: ["AI Architecture", "Startup Growth", "Technical Leadership"],
-      avatar: "MR"
-    },
-    {
-      id: "3",
-      name: "Dr. Emily Zhang",
-      title: "AI Research Scientist",
-      company: "DeepMind",
-      connectionStrength: "Weak",
-      lastInteraction: "3 weeks ago",
-      sharedInterests: ["Machine Learning", "Research", "AI Ethics"],
-      avatar: "EZ"
-    }
-  ]
+  // Use fetched connections instead of mock data
+  // Map the fetched connections to the structure expected by the UI
+  const myNetworkDisplay = connections.map(conn => ({
+    id: conn.connected_user.id,
+    name: conn.connected_user.name,
+    title: conn.connected_user.linkedin_profile?.headline || "Professional", // Use LinkedIn headline if available
+    company: conn.connected_user.linkedin_profile?.company?.name || "Company", // Use LinkedIn company if available
+    connectionStrength: conn.relationship_strength,
+    lastInteraction: conn.last_interaction ? new Date(conn.last_interaction).toLocaleDateString() : "N/A",
+    sharedInterests: conn.shared_aspirations,
+    avatar: conn.connected_user.name ? conn.connected_user.name.split(' ').map((n: string) => n[0]).join('') : "UU"
+  }))
 
   const _recommendedConnections = [
     {
