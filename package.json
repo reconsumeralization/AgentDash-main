@@ -167,7 +167,7 @@
     "ts-jest": "^29.1.0",
     "@playwright/test": "^1.40.0",
     "@lhci/cli": "^0.12.0",
-    "husky": "^8.0.0",
+    "husky": "^9.1.7",
     "lint-staged": "^15.0.0",
     "snyk": "^1.1240.0",
     "license-checker": "^25.0.0",
