@@ -89,7 +89,7 @@
     "@next/font": "^14.0.0",
     "@supabase/supabase-js": "^2.38.0",
     "@clerk/nextjs": "^4.29.0",
-    "lucide-react": "^0.294.0",
+    "lucide-react": "^0.546.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "tailwind-merge": "^2.0.0",
