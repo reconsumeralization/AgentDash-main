@@ -94,7 +94,7 @@
     "clsx": "^2.0.0",
     "tailwind-merge": "^2.0.0",
     "tailwindcss-animate": "^1.0.7",
-    "framer-motion": "^10.16.0",
+    "framer-motion": "^12.34.2",
     "react-hook-form": "^7.47.0",
     "@hookform/resolvers": "^3.3.0",
     "zod": "^3.22.0",
