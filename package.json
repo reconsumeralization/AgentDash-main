@@ -173,7 +173,7 @@
     "license-checker": "^25.0.0",
     "supertest": "^6.3.0",
     "@types/supertest": "^2.0.0",
-    "nock": "^13.4.0"
+    "nock": "^14.0.15"
   },
   "bin": {
     "pki-automate": "./bin/pki-automate.js"
