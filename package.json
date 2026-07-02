@@ -125,7 +125,7 @@
     "jsonwebtoken": "^9.0.0",
     "bcryptjs": "^2.4.3",
     "multer": "^1.4.5-lts.1",
-    "sharp": "^0.32.0",
+    "sharp": "^0.35.3",
     "pdf-parse": "^1.1.1",
     "mammoth": "^1.6.0",
     "csv-parser": "^3.0.0",
