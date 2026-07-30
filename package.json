@@ -108,7 +108,7 @@
     "nanoid": "^5.0.0",
     "uuid": "^9.0.0",
     "commander": "^11.1.0",
-    "pkcs11js": "^1.2.0",
+    "pkcs11js": "^2.1.7",
     "prom-client": "^15.0.0",
     "ioredis": "^5.3.0",
     "winston": "^3.11.0",
